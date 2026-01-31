@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Former 动效 Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* ===== 输入框高亮动效 ===== */
+        
+        /* 默认状态 */
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            outline: none;
+        }
+
+        /* 悬停状态 */
+        .form-input:hover {
+            border-color: #9ca3af;
+        }
+
+        /* 聚焦状态 */
+        .form-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        /* AI 正在识别状态 - 脉冲高亮 */
+        .form-input.ai-scanning {
+            border-color: #f59e0b;
+            animation: pulse-scanning 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-scanning {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+            }
+        }
+
+        /* AI 正在填充状态 - 渐变边框动画 */
+        .form-input.ai-filling {
+            border-color: transparent;
+            background: 
+                linear-gradient(#fff, #fff) padding-box,
+                linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6) border-box;
+            background-size: 100% 100%, 200% 100%;
+            animation: gradient-border 1.5s linear infinite;
+        }
+
+        @keyframes gradient-border {
+            0% {
+                background-position: 0 0, 0 0;
+            }
+            100% {
+                background-position: 0 0, 200% 0;
+            }
+        }
+
+        /* AI 填充完成状态 */
+        .form-input.ai-filled {
+            border-color: #10b981;
+            background: #f0fdf4;
+            animation: fill-complete 0.4s ease-out;
+        }
+
+        @keyframes fill-complete {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* 错误状态 */
+        .form-input.ai-error {
+            border-color: #ef4444;
+            background: #fef2f2;
+            animation: shake-error 0.4s ease-out;
+        }
+
+        @keyframes shake-error {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        /* ===== 气泡提示样式 ===== */
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip-bubble {
+            position: absolute;
+            padding: 8px 12px;
+            background: #1f2937;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(4px);
+        }
+
+        .tooltip-bubble::after {
+            content: '';
+            position: absolute;
+            border: 6px solid transparent;
+        }
+
+        /* 顶部提示 */
+        .tooltip-bubble.top {
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+        }
+
+        .tooltip-bubble.top::after {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-top-color: #1f2937;
+        }
+
+        .tooltip-container:hover .tooltip-bubble.top,
+        .tooltip-bubble.top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 底部提示 */
+        .tooltip-bubble.bottom {
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
+        .tooltip-bubble.bottom::after {
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-bottom-color: #1f2937;
+        }
+
+        .tooltip-container:hover .tooltip-bubble.bottom,
+        .tooltip-bubble.bottom.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* AI 提示气泡 - 带状态色 */
+        .ai-tooltip {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 280px;
+            white-space: normal;
+        }
+
+        .ai-tooltip.info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .ai-tooltip.info::after {
+            border-top-color: #2563eb;
+        }
+
+        .ai-tooltip.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .ai-tooltip.success::after {
+            border-top-color: #059669;
+        }
+
+        .ai-tooltip.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .ai-tooltip.warning::after {
+            border-top-color: #d97706;
+        }
+
+        .ai-tooltip.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .ai-tooltip.error::after {
+            border-top-color: #dc2626;
+        }
+
+        /* ===== 浮动提示框（跟随输入框） ===== */
+        .floating-hint {
+            position: absolute;
+            left: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%) translateX(-8px);
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-size: 12px;
+            color: #374151;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+
+        .floating-hint::before {
+            content: '';
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-right-color: #fff;
+        }
+
+        .floating-hint.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .floating-hint .hint-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-right: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .floating-hint.filling .hint-icon {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .floating-hint.complete .hint-icon {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        /* ===== 进度指示器 ===== */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* 不确定进度条 */
+        .progress-bar-indeterminate {
+            position: relative;
+        }
+
+        .progress-bar-indeterminate::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            animation: progress-indeterminate 1.5s ease-in-out infinite;
+        }
+
+        @keyframes progress-indeterminate {
+            0% { left: -30%; }
+            100% { left: 100%; }
+        }
+
+        /* ===== 按钮状态动效 ===== */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 140px;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* 加载状态 */
+        .btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .btn .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 成功状态 */
+        .btn.success {
+            background: #10b981;
+            animation: btn-success 0.4s ease;
+        }
+
+        @keyframes btn-success {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* ===== 卡片展开动效 ===== */
+        .expandable-card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .expandable-card-header {
+            padding: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+
+        .expandable-card-header:hover {
+            background: #f9fafb;
+        }
+
+        .expandable-card-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .expandable-card.expanded .expandable-card-arrow {
+            transform: rotate(180deg);
+        }
+
+        .expandable-card-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .expandable-card.expanded .expandable-card-content {
+            max-height: 500px;
+        }
+
+        .expandable-card-inner {
+            padding: 0 16px 16px;
+        }
+
+        /* ===== 标签动效 ===== */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f3f4f6;
+            border-radius: 16px;
+            font-size: 13px;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: #e5e7eb;
+        }
+
+        .tag.active {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .tag .tag-remove {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover .tag-remove {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 标签添加动画 */
+        .tag.adding {
+            animation: tag-add 0.3s ease;
+        }
+
+        @keyframes tag-add {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-10px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* 标签删除动画 */
+        .tag.removing {
+            animation: tag-remove 0.3s ease forwards;
+        }
+
+        @keyframes tag-remove {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        /* ===== 表单扫描波纹效果 ===== */
+        .scan-ripple-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-ripple {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(59, 130, 246, 0.1) 50%, 
+                transparent 100%
+            );
+            pointer-events: none;
+        }
+
+        .scan-ripple.active {
+            animation: scan-wave 1.5s ease-in-out;
+        }
+
+        @keyframes scan-wave {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        /* ===== 输入框 wrapper（用于定位浮动元素）===== */
+        .input-wrapper {
+            position: relative;
+        }
+
+        /* ===== 状态徽章 ===== */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.filling {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-badge.complete {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-badge.filling .dot {
+            animation: dot-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes dot-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ===== 选择框高亮 ===== */
+        .select-input {
+            width: 100%;
+            padding: 10px 36px 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .select-input.ai-filled {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+
+        /* ===== 复选框/单选框动效 ===== */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-custom.checked {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            animation: checkbox-check 0.3s ease;
+        }
+
+        @keyframes checkbox-check {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .checkbox-custom svg {
+            width: 12px;
+            height: 12px;
+            stroke: #fff;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            stroke-dasharray: 16;
+            stroke-dashoffset: 16;
+            transition: stroke-dashoffset 0.2s ease 0.1s;
+        }
+
+        .checkbox-custom.checked svg {
+            stroke-dashoffset: 0;
+        }
+
+        /* AI 选中状态 */
+        .checkbox-custom.ai-checked {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        /* ===== 开关动效 ===== */
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: #d1d5db;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            position: relative;
+        }
+
+        .toggle-switch.active {
+            background: #3b82f6;
+        }
+
+        .toggle-switch .toggle-knob {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toggle-switch.active .toggle-knob {
+            transform: translateX(20px);
+        }
+
+        /* AI 填充开关 */
+        .toggle-switch.ai-filled {
+            background: #10b981;
+        }
+
+        /* ===== 输入序列动画（打字效果）===== */
+        .typing-input {
+            position: relative;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #3b82f6;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* ===== 侧边栏组件动效 ===== */
+        
+        /* 折叠面板 */
+        .collapse-panel {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .collapse-header {
+            padding: 12px 16px;
+            background: #f9fafb;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+
+        .collapse-header:hover {
+            background: #f3f4f6;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .collapse-panel.open .collapse-icon {
+            transform: rotate(180deg);
+        }
+
+        .collapse-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapse-panel.open .collapse-body {
+            max-height: 200px;
+        }
+
+        /* 消息提示动画 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: #1f2937;
+            color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateX(calc(100% + 20px));
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.visible {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: #059669;
+        }
+
+        .toast.error {
+            background: #dc2626;
+        }
+
+        /* ===== Demo 区域样式 ===== */
+        .demo-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .demo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .demo-desc {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .demo-item {
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .demo-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .control-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .control-btn.active {
+            background: #3b82f6;
+            color: #fff;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- 页面标题 -->
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">AI Former 动效 Playground</h1>
+            <p class="text-gray-600">用于调试和预览表单填充交互动效</p>
+        </div>
+
+        <!-- 1. 输入框高亮动效 -->
+        <div class="demo-section">
+            <h2 class="demo-title">1. 输入框高亮动效</h2>
+            <p class="demo-desc">展示 AI 识别和填充表单时输入框的各种状态变化</p>
+            
+            <div class="demo-grid">
+                <div class="demo-item">
+                    <div class="demo-label">默认状态</div>
+                    <input type="text" class="form-input" placeholder="默认输入框" id="input-default">
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">AI 扫描中</div>
+                    <input type="text" class="form-input ai-scanning" placeholder="正在识别..." id="input-scanning">
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">AI 填充中</div>
+                    <input type="text" class="form-input ai-filling" placeholder="正在填充..." id="input-filling">
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">填充完成</div>
+                    <input type="text" class="form-input ai-filled" value="张三" id="input-filled">
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">填充错误</div>
+                    <input type="text" class="form-input ai-error" value="格式错误" id="input-error">
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="cycleInputStates()">演示完整流程</button>
+                <button class="control-btn" onclick="resetInputStates()">重置状态</button>
+            </div>
+        </div>
+
+        <!-- 2. 气泡提示动效 -->
+        <div class="demo-section">
+            <h2 class="demo-title">2. 气泡提示动效</h2>
+            <p class="demo-desc">AI 填充时的实时提示和状态反馈</p>
+            
+            <div class="demo-grid">
+                <div class="demo-item">
+                    <div class="demo-label">顶部提示（悬停触发）</div>
+                    <div class="tooltip-container">
+                        <input type="text" class="form-input" placeholder="悬停查看提示">
+                        <div class="tooltip-bubble top">AI 将为您填充此字段</div>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">底部提示（悬停触发）</div>
+                    <div class="tooltip-container">
+                        <input type="text" class="form-input" placeholder="悬停查看提示">
+                        <div class="tooltip-bubble bottom">请输入有效的邮箱地址</div>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">信息提示</div>
+                    <div class="tooltip-container">
+                        <input type="text" class="form-input" placeholder="点击按钮显示提示" id="tooltip-input-info">
+                        <div class="tooltip-bubble top ai-tooltip info" id="tooltip-info">正在分析表单结构...</div>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">成功提示</div>
+                    <div class="tooltip-container">
+                        <input type="text" class="form-input ai-filled" value="example@email.com" id="tooltip-input-success">
+                        <div class="tooltip-bubble top ai-tooltip success" id="tooltip-success">邮箱格式验证通过</div>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">警告提示</div>
+                    <div class="tooltip-container">
+                        <input type="text" class="form-input" placeholder="点击按钮显示提示" id="tooltip-input-warning">
+                        <div class="tooltip-bubble top ai-tooltip warning" id="tooltip-warning">此字段可能需要手动确认</div>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">错误提示</div>
+                    <div class="tooltip-container">
+                        <input type="text" class="form-input ai-error" value="abc" id="tooltip-input-error">
+                        <div class="tooltip-bubble top ai-tooltip error" id="tooltip-error">手机号格式不正确</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="showTooltip('info')">显示信息提示</button>
+                <button class="control-btn" onclick="showTooltip('success')">显示成功提示</button>
+                <button class="control-btn" onclick="showTooltip('warning')">显示警告提示</button>
+                <button class="control-btn" onclick="showTooltip('error')">显示错误提示</button>
+                <button class="control-btn" onclick="hideAllTooltips()">隐藏所有提示</button>
+            </div>
+        </div>
+
+        <!-- 3. 浮动提示框 -->
+        <div class="demo-section">
+            <h2 class="demo-title">3. 浮动提示框（跟随输入框）</h2>
+            <p class="demo-desc">显示在输入框旁边的实时状态提示</p>
+            
+            <div class="demo-grid" style="grid-template-columns: 1fr;">
+                <div class="demo-item" style="overflow: visible;">
+                    <div class="demo-label">输入框 + 浮动提示</div>
+                    <div class="input-wrapper" style="max-width: 300px;">
+                        <input type="text" class="form-input ai-filling" placeholder="正在填充..." id="floating-input">
+                        <div class="floating-hint filling" id="floating-hint">
+                            <span class="hint-icon">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l4 2"></path>
+                                </svg>
+                            </span>
+                            <span id="floating-hint-text">正在填充姓名...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="showFloatingHint('filling')">显示填充中</button>
+                <button class="control-btn" onclick="showFloatingHint('complete')">显示已完成</button>
+                <button class="control-btn" onclick="hideFloatingHint()">隐藏提示</button>
+            </div>
+        </div>
+
+        <!-- 4. 按钮状态动效 -->
+        <div class="demo-section">
+            <h2 class="demo-title">4. 按钮状态动效</h2>
+            <p class="demo-desc">操作按钮的各种交互状态</p>
+            
+            <div class="demo-grid">
+                <div class="demo-item">
+                    <div class="demo-label">默认按钮</div>
+                    <button class="btn btn-primary" id="btn-default">智能填充表单</button>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">加载状态</div>
+                    <button class="btn btn-primary loading" id="btn-loading">
+                        <span class="spinner"></span>
+                        <span>处理中...</span>
+                    </button>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">成功状态</div>
+                    <button class="btn btn-primary success" id="btn-success">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                        <span>填充完成</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="demoButtonFlow()">演示完整流程</button>
+            </div>
+        </div>
+
+        <!-- 5. 进度指示器 -->
+        <div class="demo-section">
+            <h2 class="demo-title">5. 进度指示器</h2>
+            <p class="demo-desc">表单填充进度的可视化展示</p>
+            
+            <div class="demo-grid" style="grid-template-columns: 1fr;">
+                <div class="demo-item">
+                    <div class="demo-label">确定进度</div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="progress-fill" style="width: 60%"></div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">已填充 <span id="progress-text">6</span>/10 个字段</p>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">不确定进度</div>
+                    <div class="progress-bar progress-bar-indeterminate"></div>
+                    <p class="text-sm text-gray-500 mt-2">正在分析表单结构...</p>
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="setProgress(0)">0%</button>
+                <button class="control-btn" onclick="setProgress(30)">30%</button>
+                <button class="control-btn" onclick="setProgress(60)">60%</button>
+                <button class="control-btn" onclick="setProgress(100)">100%</button>
+                <button class="control-btn" onclick="animateProgress()">动画演示</button>
+            </div>
+        </div>
+
+        <!-- 6. 状态徽章 -->
+        <div class="demo-section">
+            <h2 class="demo-title">6. 状态徽章</h2>
+            <p class="demo-desc">字段填充状态的简洁标识</p>
+            
+            <div class="flex gap-4 flex-wrap">
+                <div class="status-badge pending">
+                    <span class="dot"></span>
+                    <span>待填充</span>
+                </div>
+                <div class="status-badge filling">
+                    <span class="dot"></span>
+                    <span>填充中</span>
+                </div>
+                <div class="status-badge complete">
+                    <span class="dot"></span>
+                    <span>已完成</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. 复选框和单选框动效 -->
+        <div class="demo-section">
+            <h2 class="demo-title">7. 复选框和单选框动效</h2>
+            <p class="demo-desc">AI 自动选择选项时的动画效果</p>
+            
+            <div class="demo-grid">
+                <div class="demo-item">
+                    <div class="demo-label">复选框</div>
+                    <div class="flex flex-col gap-3">
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox(this)">
+                            <div class="checkbox-custom">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <span class="text-sm">阅读</span>
+                        </div>
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox(this)">
+                            <div class="checkbox-custom checked">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <span class="text-sm">音乐</span>
+                        </div>
+                        <div class="checkbox-wrapper" onclick="toggleCheckbox(this)">
+                            <div class="checkbox-custom ai-checked checked">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <span class="text-sm">运动 (AI 选中)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">开关</div>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="toggle-switch" onclick="toggleSwitch(this)">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span class="text-sm">邮件通知</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="toggle-switch active" onclick="toggleSwitch(this)">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span class="text-sm">短信通知</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="toggle-switch ai-filled active" onclick="toggleSwitch(this)">
+                                <div class="toggle-knob"></div>
+                            </div>
+                            <span class="text-sm">推送通知 (AI 设置)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="demoCheckboxAnimation()">演示 AI 选择动画</button>
+            </div>
+        </div>
+
+        <!-- 8. 选择框动效 -->
+        <div class="demo-section">
+            <h2 class="demo-title">8. 选择框动效</h2>
+            <p class="demo-desc">下拉选择框的 AI 填充效果</p>
+            
+            <div class="demo-grid">
+                <div class="demo-item">
+                    <div class="demo-label">默认状态</div>
+                    <select class="select-input">
+                        <option value="">请选择学历</option>
+                        <option value="bachelor">本科</option>
+                        <option value="master">硕士</option>
+                        <option value="phd">博士</option>
+                    </select>
+                </div>
+                
+                <div class="demo-item">
+                    <div class="demo-label">AI 已填充</div>
+                    <select class="select-input ai-filled" id="select-filled">
+                        <option value="">请选择学历</option>
+                        <option value="bachelor" selected>本科</option>
+                        <option value="master">硕士</option>
+                        <option value="phd">博士</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. 标签动效 -->
+        <div class="demo-section">
+            <h2 class="demo-title">9. 标签动效</h2>
+            <p class="demo-desc">补充信息标签的添加和删除动画</p>
+            
+            <div class="flex gap-2 flex-wrap mb-4" id="tags-container">
+                <div class="tag active">
+                    <span>个人简历</span>
+                    <button class="tag-remove" onclick="removeTag(this)">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="tag">
+                    <span>工作经历</span>
+                    <button class="tag-remove" onclick="removeTag(this)">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="tag">
+                    <span>教育背景</span>
+                    <button class="tag-remove" onclick="removeTag(this)">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="addTag()">添加标签</button>
+            </div>
+        </div>
+
+        <!-- 10. 卡片展开动效 -->
+        <div class="demo-section">
+            <h2 class="demo-title">10. 卡片展开动效</h2>
+            <p class="demo-desc">侧边栏折叠面板的展开/收起动画</p>
+            
+            <div class="expandable-card" id="expandable-card">
+                <div class="expandable-card-header" onclick="toggleExpandableCard()">
+                    <span class="font-medium text-gray-700">补充信息（可选）</span>
+                    <svg class="expandable-card-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </div>
+                <div class="expandable-card-content">
+                    <div class="expandable-card-inner">
+                        <textarea class="form-input" style="min-height: 80px;" placeholder="在这里输入补充信息..."></textarea>
+                        <div class="flex gap-2 mt-3">
+                            <button class="btn btn-primary" style="min-width: auto; padding: 8px 16px;">保存</button>
+                            <button class="control-btn">另存为</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 11. 表单扫描波纹效果 -->
+        <div class="demo-section">
+            <h2 class="demo-title">11. 表单扫描波纹效果</h2>
+            <p class="demo-desc">AI 扫描表单时的视觉反馈</p>
+            
+            <div class="scan-ripple-container p-4 bg-gray-50 rounded-lg" id="scan-container">
+                <div class="scan-ripple" id="scan-ripple"></div>
+                <div class="space-y-3">
+                    <input type="text" class="form-input" placeholder="姓名">
+                    <input type="email" class="form-input" placeholder="邮箱">
+                    <input type="tel" class="form-input" placeholder="电话">
+                </div>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="triggerScanRipple()">触发扫描动画</button>
+            </div>
+        </div>
+
+        <!-- 12. Toast 消息提示 -->
+        <div class="demo-section">
+            <h2 class="demo-title">12. Toast 消息提示</h2>
+            <p class="demo-desc">操作结果的即时反馈</p>
+            
+            <div class="control-buttons">
+                <button class="control-btn" onclick="showToast('default')">默认提示</button>
+                <button class="control-btn" onclick="showToast('success')">成功提示</button>
+                <button class="control-btn" onclick="showToast('error')">错误提示</button>
+            </div>
+        </div>
+
+        <!-- 13. 打字效果 -->
+        <div class="demo-section">
+            <h2 class="demo-title">13. 打字效果</h2>
+            <p class="demo-desc">模拟 AI 逐字填充的效果</p>
+            
+            <div class="demo-item" style="max-width: 400px;">
+                <div class="demo-label">AI 正在输入</div>
+                <input type="text" class="form-input ai-filling" id="typing-input" value="" readonly>
+            </div>
+
+            <div class="control-buttons">
+                <button class="control-btn" onclick="startTypingDemo()">开始打字演示</button>
+                <button class="control-btn" onclick="resetTypingDemo()">重置</button>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="text-center py-8 text-gray-500 text-sm">
+            <p>AI Former 动效 Playground v1.0</p>
+            <p class="mt-1">Made by <a href="http://luoxiaoshan.cn" class="text-blue-500 hover:underline">洛小山</a></p>
+        </footer>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div class="toast" id="toast">
+        <span id="toast-message">操作成功</span>
+    </div>
+
+    <script>
+        // ===== 输入框状态演示 =====
+        function cycleInputStates() {
+            const input = document.getElementById('input-default');
+            const states = ['', 'ai-scanning', 'ai-filling', 'ai-filled'];
+            const values = ['', '', '', '张三'];
+            let index = 0;
+
+            function nextState() {
+                input.className = 'form-input ' + states[index];
+                input.value = values[index];
+                input.placeholder = index === 0 ? '默认输入框' : 
+                                   index === 1 ? '正在识别...' : 
+                                   index === 2 ? '正在填充...' : '';
+                index++;
+                if (index < states.length) {
+                    setTimeout(nextState, 1500);
+                }
+            }
+            nextState();
+        }
+
+        function resetInputStates() {
+            const input = document.getElementById('input-default');
+            input.className = 'form-input';
+            input.value = '';
+            input.placeholder = '默认输入框';
+        }
+
+        // ===== 气泡提示 =====
+        function showTooltip(type) {
+            hideAllTooltips();
+            const tooltip = document.getElementById('tooltip-' + type);
+            if (tooltip) {
+                tooltip.classList.add('visible');
+            }
+        }
+
+        function hideAllTooltips() {
+            document.querySelectorAll('.ai-tooltip').forEach(el => {
+                el.classList.remove('visible');
+            });
+        }
+
+        // ===== 浮动提示 =====
+        function showFloatingHint(type) {
+            const hint = document.getElementById('floating-hint');
+            const input = document.getElementById('floating-input');
+            const text = document.getElementById('floating-hint-text');
+            
+            hint.classList.remove('filling', 'complete');
+            input.classList.remove('ai-filling', 'ai-filled');
+            
+            if (type === 'filling') {
+                hint.classList.add('filling', 'visible');
+                input.classList.add('ai-filling');
+                text.textContent = '正在填充姓名...';
+                hint.querySelector('.hint-icon').innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 6v6l4 2"></path>
+                    </svg>
+                `;
+            } else if (type === 'complete') {
+                hint.classList.add('complete', 'visible');
+                input.classList.add('ai-filled');
+                input.value = '张三';
+                text.textContent = '填充完成';
+                hint.querySelector('.hint-icon').innerHTML = `
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                `;
+            }
+        }
+
+        function hideFloatingHint() {
+            document.getElementById('floating-hint').classList.remove('visible');
+        }
+
+        // ===== 按钮流程演示 =====
+        function demoButtonFlow() {
+            const btn = document.getElementById('btn-default');
+            const originalHTML = btn.innerHTML;
+            
+            // 加载状态
+            btn.classList.add('loading');
+            btn.innerHTML = '<span class="spinner"></span><span>处理中...</span>';
+            
+            setTimeout(() => {
+                // 成功状态
+                btn.classList.remove('loading');
+                btn.classList.add('success');
+                btn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                    <span>填充完成</span>
+                `;
+                
+                setTimeout(() => {
+                    // 恢复默认
+                    btn.classList.remove('success');
+                    btn.innerHTML = originalHTML;
+                }, 2000);
+            }, 2000);
+        }
+
+        // ===== 进度条 =====
+        function setProgress(percent) {
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('progress-text').textContent = Math.round(percent / 10);
+        }
+
+        function animateProgress() {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                setProgress(progress);
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 300);
+        }
+
+        // ===== 复选框 =====
+        function toggleCheckbox(wrapper) {
+            const checkbox = wrapper.querySelector('.checkbox-custom');
+            checkbox.classList.toggle('checked');
+        }
+
+        function demoCheckboxAnimation() {
+            const checkboxes = document.querySelectorAll('.checkbox-custom:not(.checked)');
+            let index = 0;
+            
+            function checkNext() {
+                if (index < checkboxes.length) {
+                    checkboxes[index].classList.add('checked', 'ai-checked');
+                    index++;
+                    setTimeout(checkNext, 500);
+                }
+            }
+            checkNext();
+        }
+
+        // ===== 开关 =====
+        function toggleSwitch(toggle) {
+            toggle.classList.toggle('active');
+        }
+
+        // ===== 标签 =====
+        let tagCounter = 0;
+        const tagNames = ['技能特长', '项目经验', '获奖情况', '语言能力', '兴趣爱好'];
+
+        function addTag() {
+            const container = document.getElementById('tags-container');
+            const tag = document.createElement('div');
+            tag.className = 'tag adding';
+            tag.innerHTML = `
+                <span>${tagNames[tagCounter % tagNames.length]}</span>
+                <button class="tag-remove" onclick="removeTag(this)">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </button>
+            `;
+            container.appendChild(tag);
+            tagCounter++;
+            
+            setTimeout(() => {
+                tag.classList.remove('adding');
+            }, 300);
+        }
+
+        function removeTag(btn) {
+            const tag = btn.parentElement;
+            tag.classList.add('removing');
+            setTimeout(() => {
+                tag.remove();
+            }, 300);
+        }
+
+        // ===== 展开卡片 =====
+        function toggleExpandableCard() {
+            document.getElementById('expandable-card').classList.toggle('expanded');
+        }
+
+        // ===== 扫描波纹 =====
+        function triggerScanRipple() {
+            const ripple = document.getElementById('scan-ripple');
+            ripple.classList.remove('active');
+            void ripple.offsetWidth; // 触发重绘
+            ripple.classList.add('active');
+        }
+
+        // ===== Toast =====
+        function showToast(type) {
+            const toast = document.getElementById('toast');
+            const message = document.getElementById('toast-message');
+            
+            toast.classList.remove('success', 'error', 'visible');
+            
+            if (type === 'success') {
+                toast.classList.add('success');
+                message.textContent = '表单填充成功！';
+            } else if (type === 'error') {
+                toast.classList.add('error');
+                message.textContent = '填充失败，请重试';
+            } else {
+                message.textContent = '正在处理中...';
+            }
+            
+            toast.classList.add('visible');
+            
+            setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 3000);
+        }
+
+        // ===== 打字效果 =====
+        function startTypingDemo() {
+            const input = document.getElementById('typing-input');
+            const text = '张三';
+            input.value = '';
+            input.classList.add('ai-filling');
+            
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index < text.length) {
+                    input.value += text[index];
+                    index++;
+                } else {
+                    clearInterval(interval);
+                    input.classList.remove('ai-filling');
+                    input.classList.add('ai-filled');
+                }
+            }, 200);
+        }
+
+        function resetTypingDemo() {
+            const input = document.getElementById('typing-input');
+            input.value = '';
+            input.classList.remove('ai-filling', 'ai-filled');
+        }
+    </script>
+</body>
+</html>

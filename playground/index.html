@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Former 动效 Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #3b82f6;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: gap 0.2s;
+        }
+
+        .card-link:hover {
+            gap: 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-4xl mx-auto px-4 py-16">
+        <!-- 页面标题 -->
+        <div class="text-center mb-16">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">AI Former 动效 Playground</h1>
+            <p class="text-lg text-gray-600">浏览器插件交互动效的设计与调试工具</p>
+        </div>
+
+        <!-- V3 全新设计 -->
+        <div class="mb-12">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <h2 class="text-lg font-semibold text-gray-700">V3 全新设计</h2>
+                <span class="text-xs px-3 py-1 rounded-full" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: 600;">✨ 最新版本</span>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- V3 侧边栏 -->
+                <div class="card" style="border: 2px solid #667eea;">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <path d="M9 3v18"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">侧边栏</h2>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        全新设计，更简洁优雅的界面，更舒适的视觉体验
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">精致设计</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">折叠面板</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">流畅动画</span>
+                    </div>
+                    <a href="v2-sidebar-redesign.html" class="card-link" style="color: #667eea;">
+                        <span>打开 Playground</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- V3 设置页 -->
+                <div class="card" style="border: 2px solid #667eea;">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6m5.2-15.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m15.2 5.2l-4.2-4.2m0-6l4.2-4.2"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">设置页面</h2>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        标签式布局，更清晰的功能分类和配置管理
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">标签导航</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">模态框</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">数据表格</span>
+                    </div>
+                    <a href="v2-settings-redesign.html" class="card-link" style="color: #667eea;">
+                        <span>打开 Playground</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- V3 输入交互 -->
+                <div class="card" style="border: 2px solid #667eea;">
+                    <div class="card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">输入框交互</h2>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        精致的输入框交互演示，完整的场景展示
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">悬浮按钮</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">下拉菜单</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #f3f4f6; color: #6b7280;">缓存提示</span>
+                    </div>
+                    <a href="v2-input-interactions-redesign.html" class="card-link" style="color: #667eea;">
+                        <span>打开 Playground</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- V2 新版设计 -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-500 mb-4">V2 旧版设计（保留参考）</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- V2 侧边栏 -->
+                <div class="card">
+                    <div class="card-icon" style="background: #e8f0fe;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4285f4" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <path d="M9 3v18"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">V2 侧边栏设计</h2>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        全新 SaaS 简洁风格，支持暗黑模式自动切换，收拢模型配置，快捷操作更突出。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs px-2 py-1 rounded" style="background: #e8f0fe; color: #4285f4;">暗黑模式</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #e8f0fe; color: #4285f4;">知识库</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #e8f0fe; color: #4285f4;">快捷操作</span>
+                    </div>
+                    <a href="v2-sidebar.html" class="card-link" style="color: #4285f4;">
+                        <span>打开 Playground</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- V2 设置面板 -->
+                <div class="card">
+                    <div class="card-icon" style="background: #fef3c7;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">V2 设置面板</h2>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        独立设置页面，包含模型配置、提示词管理、知识库、填充日志、Token 统计等功能。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs px-2 py-1 rounded" style="background: #fef3c7; color: #d97706;">提示词编辑</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #fef3c7; color: #d97706;">日志管理</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #fef3c7; color: #d97706;">Token 统计</span>
+                    </div>
+                    <a href="v2-settings.html" class="card-link" style="color: #d97706;">
+                        <span>打开 Playground</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- V2 输入框交互 -->
+                <div class="card">
+                    <div class="card-icon" style="background: #d1fae5;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">V2 输入框交互</h2>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        点击输入框显示操作按钮、填充/翻译下拉菜单、缓存确认、流式填充效果等完整交互。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs px-2 py-1 rounded" style="background: #d1fae5; color: #059669;">填充下拉</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #d1fae5; color: #059669;">多语言翻译</span>
+                        <span class="text-xs px-2 py-1 rounded" style="background: #d1fae5; color: #059669;">流式填充</span>
+                    </div>
+                    <a href="v2-input-interactions.html" class="card-link" style="color: #059669;">
+                        <span>打开 Playground</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- V1 旧版（保留） -->
+        <div class="mb-8">
+            <h2 class="text-lg font-semibold text-gray-500 mb-4">V1 旧版设计（保留参考）</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- 表单动效 -->
+                <div class="card" style="opacity: 0.7;">
+                    <div class="card-icon bg-blue-100">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <path d="M9 9h6"></path>
+                            <path d="M9 13h6"></path>
+                            <path d="M9 17h4"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">表单输入框动效</h2>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        包含输入框高亮、气泡提示、浮动提示框、按钮状态、进度指示器、复选框/开关、扫描波纹、打字效果等完整的表单交互动效集合。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded">输入框高亮</span>
+                        <span class="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded">气泡提示</span>
+                        <span class="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded">进度条</span>
+                        <span class="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded">打字效果</span>
+                    </div>
+                    <a href="animation-playground.html" class="card-link">
+                        <span>打开 Playground</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- 侧边栏组件 -->
+                <div class="card" style="opacity: 0.7;">
+                    <div class="card-icon bg-green-100">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                            <path d="M9 3v18"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">侧边栏组件动效</h2>
+                    <p class="text-gray-600 mb-4 text-sm leading-relaxed">
+                        专为浏览器插件侧边栏设计的组件库，包含加载指示器、按钮状态、模型选择器、折叠面板、标签系统、模态框等完整组件。
+                    </p>
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <span class="text-xs px-2 py-1 bg-green-50 text-green-600 rounded">加载指示器</span>
+                        <span class="text-xs px-2 py-1 bg-green-50 text-green-600 rounded">折叠面板</span>
+                        <span class="text-xs px-2 py-1 bg-green-50 text-green-600 rounded">标签系统</span>
+                        <span class="text-xs px-2 py-1 bg-green-50 text-green-600 rounded">完整预览</span>
+                    </div>
+                    <a href="sidebar-components.html" class="card-link" style="color: #10b981;">
+                        <span>打开 Playground</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 动效类型索引 -->
+        <div class="bg-white rounded-xl p-8 shadow-sm border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">动效类型索引</h3>
+            
+            <div class="grid md:grid-cols-2 gap-x-12 gap-y-4">
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">页面输入框处理</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            默认 → 悬停 → 聚焦状态过渡
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                            AI 扫描中 - 脉冲高亮效果
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                            AI 填充中 - 渐变边框动画
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                            填充完成 - 成功状态反馈
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                            填充错误 - 抖动效果
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">提示与反馈</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            气泡提示 - 顶部/底部位置
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            浮动提示框 - 跟随输入框
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            状态徽章 - 待填充/填充中/已完成
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            Toast 消息 - 滑入滑出
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            打字效果 - 模拟 AI 输入
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mt-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">表单元素</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            复选框 - 勾选动画
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            开关 - 滑动切换
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            下拉选择 - 填充高亮
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            扫描波纹 - 整体扫描效果
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mt-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">侧边栏组件</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            加载指示器 - 滑动进度条
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            按钮状态 - 加载/成功/禁用
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            折叠面板 - 展开/收起
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+                            标签系统 - 添加/删除动画
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 使用说明 -->
+        <div class="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-100">
+            <h3 class="text-sm font-semibold text-blue-800 mb-2">使用说明</h3>
+            <p class="text-sm text-blue-700 leading-relaxed">
+                这些 Playground 页面包含了 AI Former 插件所有交互动效的独立 Demo。每个动效都可以通过控制按钮单独触发和测试，方便调整样式参数。在实际开发中，可以直接复制相关 CSS 和 JavaScript 代码到项目中使用。
+            </p>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="text-center py-12 text-gray-500 text-sm">
+            <p>AI Former 动效 Playground</p>
+            <p class="mt-1">Made by <a href="http://luoxiaoshan.cn" class="text-blue-500 hover:underline">洛小山</a></p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Former v2 - 侧边栏设计</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #4285f4;
+            --primary-hover: #3367d6;
+            --primary-light: #e8f0fe;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --text-tertiary: #80868b;
+            --border: #dadce0;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f4;
+            --success: #34a853;
+            --warning: #fbbc04;
+            --error: #ea4335;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #8ab4f8;
+                --primary-hover: #aecbfa;
+                --primary-light: #1a3a5c;
+                --text-primary: #e8eaed;
+                --text-secondary: #9aa0a6;
+                --text-tertiary: #80868b;
+                --border: #3c4043;
+                --bg-primary: #202124;
+                --bg-secondary: #292a2d;
+                --bg-tertiary: #35363a;
+                --success: #81c995;
+                --warning: #fdd663;
+                --error: #f28b82;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* 侧边栏容器 */
+        .sidebar {
+            width: 360px;
+            min-height: 100vh;
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部标题栏 */
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* 首次使用引导 */
+        .onboarding-banner {
+            margin: 12px;
+            padding: 12px;
+            background: var(--primary-light);
+            border-radius: 8px;
+            border: 1px solid var(--primary);
+        }
+
+        .onboarding-banner.hidden {
+            display: none;
+        }
+
+        .onboarding-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .onboarding-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .onboarding-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .onboarding-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .onboarding-btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+        }
+
+        .onboarding-btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .onboarding-btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .onboarding-btn-secondary:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* 主内容区 */
+        .sidebar-content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .card-header:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title-icon {
+            width: 18px;
+            height: 18px;
+            color: var(--text-secondary);
+        }
+
+        .card-arrow {
+            width: 16px;
+            height: 16px;
+            color: var(--text-tertiary);
+            transition: transform 0.2s;
+        }
+
+        .card.expanded .card-arrow {
+            transform: rotate(180deg);
+        }
+
+        .card-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+
+        .card.expanded .card-body {
+            max-height: 500px;
+        }
+
+        .card-inner {
+            padding: 0 12px 12px;
+        }
+
+        /* 输入框样式 */
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .input:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* 选择框 */
+        .select {
+            width: 100%;
+            padding: 8px 28px 8px 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-primary) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235f6368' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 10px center;
+            color: var(--text-primary);
+            appearance: none;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.15s;
+        }
+
+        .select:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        /* 文本域 */
+        .textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            outline: none;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        /* 主按钮 */
+        .btn-primary {
+            width: 100%;
+            padding: 10px 16px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 次要按钮 */
+        .btn-secondary {
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* 按钮行 */
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-row .btn-secondary {
+            flex: 1;
+        }
+
+        /* 知识库选择 */
+        .knowledge-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .knowledge-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-light);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .knowledge-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .knowledge-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .knowledge-summary {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .knowledge-change {
+            font-size: 12px;
+            color: var(--primary);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .knowledge-change:hover {
+            text-decoration: underline;
+        }
+
+        /* 状态提示 */
+        .status-bar {
+            padding: 8px 12px;
+            font-size: 12px;
+            text-align: center;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .status-bar.info {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .status-bar.success {
+            background: rgba(52, 168, 83, 0.1);
+            color: var(--success);
+        }
+
+        .status-bar.error {
+            background: rgba(234, 67, 53, 0.1);
+            color: var(--error);
+        }
+
+        /* 加载指示器 */
+        .loading-bar {
+            height: 2px;
+            background: var(--bg-tertiary);
+            border-radius: 1px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .loading-bar-inner {
+            height: 100%;
+            width: 30%;
+            background: var(--primary);
+            animation: loading-slide 1.2s ease-in-out infinite;
+        }
+
+        @keyframes loading-slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+
+        .loading-bar.hidden {
+            display: none;
+        }
+
+        /* 页脚 */
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .footer-link {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .footer-link:hover {
+            color: var(--primary);
+        }
+
+        .version {
+            font-size: 11px;
+            color: var(--text-tertiary);
+        }
+
+        /* 快捷提示 */
+        .shortcut-hint {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* 分隔线 */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 12px 0;
+        }
+
+        /* 快捷操作栏 */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .quick-action {
+            flex: 1;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+
+        .quick-action:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--primary);
+        }
+
+        .quick-action-icon {
+            width: 24px;
+            height: 24px;
+            margin: 0 auto 6px;
+            color: var(--primary);
+        }
+
+        .quick-action-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Demo 控制区 */
+        .demo-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .demo-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .demo-btn {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: left;
+            color: var(--text-primary);
+            transition: all 0.15s;
+        }
+
+        .demo-btn:hover {
+            background: var(--border);
+        }
+
+        .demo-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 主题切换 */
+        .theme-toggle {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+
+        .theme-btn {
+            flex: 1;
+            padding: 6px;
+            font-size: 11px;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .theme-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex;">
+        <!-- 侧边栏 -->
+        <div class="sidebar" id="sidebar">
+            <!-- 顶部 -->
+            <div class="sidebar-header">
+                <span class="sidebar-title">AI Former</span>
+                <div class="header-actions">
+                    <button class="icon-btn" title="AI 学习表单" onclick="showStatus('info', '正在学习当前页面表单内容...')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" title="抓取本页到知识库" onclick="showStatus('success', '已抓取本页内容到知识库')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" title="设置" onclick="window.open('v2-settings.html', '_blank')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 首次使用引导 -->
+            <div class="onboarding-banner" id="onboarding">
+                <div class="onboarding-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                    欢迎使用 AI Former
+                </div>
+                <div class="onboarding-desc">
+                    首次使用需要配置 API Key。配置完成后，即可使用智能表单填充功能。
+                </div>
+                <div class="onboarding-actions">
+                    <button class="onboarding-btn onboarding-btn-primary" onclick="alert('打开设置页面')">
+                        立即配置
+                    </button>
+                    <button class="onboarding-btn onboarding-btn-secondary" onclick="hideOnboarding()">
+                        稍后设置
+                    </button>
+                </div>
+            </div>
+
+            <!-- 主内容 -->
+            <div class="sidebar-content">
+                <!-- 快捷操作 -->
+                <div class="quick-actions">
+                    <div class="quick-action" onclick="showStatus('info', '正在识别表单...')">
+                        <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="2" width="6" height="20" rx="1"/>
+                            <rect x="3" y="6" width="18" height="12" rx="1"/>
+                        </svg>
+                        <div class="quick-action-text">识别表单</div>
+                    </div>
+                    <div class="quick-action" onclick="demoFillForm()">
+                        <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                        </svg>
+                        <div class="quick-action-text">一键填充</div>
+                    </div>
+                    <div class="quick-action" onclick="showStatus('success', '已清除所有高亮')">
+                        <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            <line x1="10" y1="11" x2="10" y2="17"/>
+                            <line x1="14" y1="11" x2="14" y2="17"/>
+                        </svg>
+                        <div class="quick-action-text">清除识别</div>
+                    </div>
+                </div>
+
+                <!-- 填充要求 -->
+                <div class="card expanded">
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <span class="card-title">
+                            <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            填充要求
+                        </span>
+                        <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-inner">
+                            <textarea class="textarea" placeholder="描述你的填充需求，例如：请帮我填写个人信息，我是一名 30 岁的软件工程师..." id="user-prompt"></textarea>
+                            <div class="shortcut-hint">Ctrl + Enter 快速填充</div>
+                            
+                            <button class="btn-primary" onclick="demoFillForm()" id="fill-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                </svg>
+                                智能填充表单
+                            </button>
+                            
+                            <div class="loading-bar hidden" id="loading-bar">
+                                <div class="loading-bar-inner"></div>
+                            </div>
+                            
+                            <div class="status-bar hidden" id="status-bar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 知识库选择 -->
+                <div class="card expanded">
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <span class="card-title">
+                            <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                            知识库
+                        </span>
+                        <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-inner">
+                            <div class="knowledge-select">
+                                <div class="knowledge-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                                <div class="knowledge-info">
+                                    <div class="knowledge-name">个人简历档案</div>
+                                    <div class="knowledge-summary">包含基本信息、教育背景、工作经历</div>
+                                </div>
+                                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                    <input type="checkbox" checked style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary);">
+                                    <span style="font-size: 11px; color: var(--text-tertiary); white-space: nowrap;">挂载</span>
+                                </label>
+                            </div>
+                            
+                            <div class="btn-row">
+                                <button class="btn-secondary" onclick="window.open('v2-settings.html#knowledge', '_blank')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    管理档案
+                                </button>
+                                <button class="btn-secondary" onclick="alert('新建档案')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="5" x2="12" y2="19"/>
+                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                    </svg>
+                                    新建档案
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 历史记录 -->
+                <div class="card">
+                    <div class="card-header" onclick="toggleCard(this)">
+                        <span class="card-title">
+                            <svg class="card-title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                                <path d="M12 7v5l4 2"/>
+                            </svg>
+                            历史记录
+                        </span>
+                        <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-inner">
+                            <div style="max-height: 200px; overflow-y: auto;">
+                                <div style="padding: 8px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border); cursor: pointer;" onclick="document.getElementById('user-prompt').value = '请帮我填写个人信息，我是一名软件工程师'">
+                                    请帮我填写个人信息，我是一名软件工程师
+                                </div>
+                                <div style="padding: 8px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border); cursor: pointer;" onclick="document.getElementById('user-prompt').value = '填写求职信息，突出技术能力'">
+                                    填写求职信息，突出技术能力
+                                </div>
+                                <div style="padding: 8px; font-size: 12px; color: var(--text-secondary); cursor: pointer;" onclick="document.getElementById('user-prompt').value = '填充教育背景和工作经历'">
+                                    填充教育背景和工作经历
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 页脚 -->
+            <div class="sidebar-footer">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="display: flex; gap: 8px;">
+                        <a href="#" class="footer-link" onclick="alert('打开反馈')">反馈</a>
+                        <span style="color: var(--border);">·</span>
+                        <a href="#" class="footer-link">帮助</a>
+                        <span style="color: var(--border);">·</span>
+                        <span class="version">v2.0</span>
+                    </div>
+                    <a href="https://github.com/itshen/ai_former" target="_blank" class="footer-link" style="display: flex; align-items: center; gap: 4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主区域（模拟页面） -->
+        <div style="flex: 1; padding: 40px; background: var(--bg-secondary);">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <h2 style="font-size: 20px; margin-bottom: 20px; color: var(--text-primary);">模拟表单页面</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">
+                    这是一个模拟的表单页面，用于展示侧边栏与表单的交互效果。
+                </p>
+                <div style="background: var(--bg-primary); padding: 24px; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">姓名</label>
+                        <input type="text" class="input" placeholder="请输入姓名">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">邮箱</label>
+                        <input type="email" class="input" placeholder="请输入邮箱">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">个人简介</label>
+                        <textarea class="textarea" placeholder="请输入个人简介"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo 控制面板 -->
+        <div class="demo-controls">
+        <div class="demo-title">Demo 控制</div>
+        <div class="theme-toggle">
+            <button class="theme-btn active" onclick="setTheme('auto', this)">自动</button>
+            <button class="theme-btn" onclick="setTheme('light', this)">浅色</button>
+            <button class="theme-btn" onclick="setTheme('dark', this)">深色</button>
+        </div>
+        <button class="demo-btn" onclick="toggleOnboarding()">切换引导横幅</button>
+        <button class="demo-btn" onclick="demoFillForm()">演示填充流程</button>
+        <button class="demo-btn" onclick="showStatus('success', '表单填充成功！已填充 12 个字段')">显示成功状态</button>
+        <button class="demo-btn" onclick="showStatus('error', 'API 调用失败，请检查配置')">显示错误状态</button>
+    </div>
+
+    <script>
+        // 切换卡片展开
+        function toggleCard(header) {
+            const card = header.parentElement;
+            card.classList.toggle('expanded');
+        }
+
+        // 切换引导横幅
+        function toggleOnboarding() {
+            const banner = document.getElementById('onboarding');
+            banner.classList.toggle('hidden');
+        }
+
+        function hideOnboarding() {
+            document.getElementById('onboarding').classList.add('hidden');
+        }
+
+        // 显示状态
+        function showStatus(type, message) {
+            const statusBar = document.getElementById('status-bar');
+            statusBar.className = 'status-bar ' + type;
+            statusBar.textContent = message;
+            statusBar.classList.remove('hidden');
+        }
+
+        // 演示填充流程
+        function demoFillForm() {
+            const btn = document.getElementById('fill-btn');
+            const loadingBar = document.getElementById('loading-bar');
+            const statusBar = document.getElementById('status-bar');
+            
+            // 开始加载
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                正在填充...
+            `;
+            loadingBar.classList.remove('hidden');
+            statusBar.classList.add('hidden');
+
+            // 模拟处理
+            setTimeout(() => {
+                showStatus('info', '正在分析表单结构...');
+            }, 500);
+
+            setTimeout(() => {
+                showStatus('info', '正在调用 AI 生成内容...');
+            }, 1500);
+
+            setTimeout(() => {
+                showStatus('info', '正在填充表单字段...');
+            }, 2500);
+
+            // 完成
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = `
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83"/>
+                    </svg>
+                    智能填充表单
+                `;
+                loadingBar.classList.add('hidden');
+                showStatus('success', '表单填充成功！已填充 12 个字段');
+            }, 4000);
+        }
+
+        // 主题切换
+        function setTheme(theme, btn) {
+            const html = document.documentElement;
+            const btns = document.querySelectorAll('.theme-btn');
+            
+            btns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (theme === 'light') {
+                html.style.colorScheme = 'light';
+            } else if (theme === 'dark') {
+                html.style.colorScheme = 'dark';
+            } else {
+                html.style.colorScheme = '';
+            }
+        }
+
+        // 添加旋转动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

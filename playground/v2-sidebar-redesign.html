@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Former - 智能表单助手</title>
+    <style>
+        :root {
+            --primary: #4285f4;
+            --primary-dark: #1967d2;
+            --primary-light: #e8f0fe;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --text-tertiary: #80868b;
+            --border: #e8eaed;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-hover: #f1f3f4;
+            --success: #1e8e3e;
+            --success-bg: #e6f4ea;
+            --warning: #f9ab00;
+            --warning-bg: #fef7e0;
+            --error: #d93025;
+            --shadow-sm: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+            --shadow-md: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #8ab4f8;
+                --primary-dark: #669df6;
+                --primary-light: #1a3a5c;
+                --text-primary: #e8eaed;
+                --text-secondary: #9aa0a6;
+                --text-tertiary: #80868b;
+                --border: #3c4043;
+                --bg-primary: #202124;
+                --bg-secondary: #292a2d;
+                --bg-hover: #35363a;
+                --success: #81c995;
+                --success-bg: #1e3a28;
+                --warning: #fdd663;
+                --warning-bg: #3d3416;
+                --error: #f28b82;
+                --shadow-sm: 0 1px 2px 0 rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15);
+                --shadow-md: 0 1px 3px 0 rgba(0,0,0,.3), 0 4px 8px 3px rgba(0,0,0,.15);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 360px;
+            height: 100vh;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+        }
+
+        /* 顶部栏 */
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        /* 引导横幅 */
+        .onboarding-banner {
+            margin: 16px 16px 0;
+            padding: 16px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            border: 1px solid var(--primary);
+            position: relative;
+        }
+
+        .onboarding-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .onboarding-close:hover {
+            background: rgba(66, 133, 244, 0.1);
+        }
+
+        .onboarding-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        .onboarding-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .onboarding-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .onboarding-action:hover {
+            background: var(--primary-dark);
+        }
+
+        /* 主内容区 */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .content::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        /* 快捷操作 */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .quick-action {
+            padding: 16px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+        }
+
+        .quick-action:hover {
+            background: var(--bg-hover);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .quick-action:active {
+            transform: scale(0.98);
+        }
+
+        .quick-action-icon {
+            width: 24px;
+            height: 24px;
+            margin: 0 auto 8px;
+            color: var(--primary);
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .quick-action:hover .quick-action-icon {
+            transform: scale(1.1);
+        }
+
+        .quick-action-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* 卡片 */
+        .card {
+            margin-bottom: 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 16px;
+        }
+
+        /* 输入框 */
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.2s;
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .textarea::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* 按钮 */
+        .btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        /* 知识库 */
+        .knowledge-item {
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .knowledge-item:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+        }
+
+        .knowledge-checkbox {
+            flex-shrink: 0;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .knowledge-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .knowledge-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .knowledge-desc {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .knowledge-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .knowledge-actions .icon-btn {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* 历史记录 */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .history-item {
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+
+        .history-item:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+            color: var(--text-primary);
+        }
+
+        /* 页脚 */
+        .footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+
+        .footer-link:hover {
+            color: var(--primary);
+        }
+
+        .footer-divider {
+            color: var(--border);
+        }
+
+        .github-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .github-link:hover {
+            background: var(--bg-hover);
+            border-color: var(--text-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* 关于页面 */
+        .about-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-primary);
+            z-index: 100;
+            overflow-y: auto;
+            display: none;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .about-page.active {
+            display: block;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .about-header {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .about-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px;
+            margin: -8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .about-back:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .about-content {
+            padding: 24px 20px;
+        }
+
+        .about-intro {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .about-greeting {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .about-description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .about-section {
+            margin-bottom: 28px;
+        }
+
+        .about-section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .about-section-content {
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .about-section-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 8px 0;
+        }
+
+        .about-section-content li {
+            padding: 4px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .about-section-content li::before {
+            content: "·";
+            position: absolute;
+            left: 8px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .about-qr-container {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .about-qr-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .about-qr-box {
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .about-qr-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 8px;
+        }
+
+        .about-qr-placeholder {
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+
+        .about-qr-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .about-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 4px 0;
+            transition: opacity 0.2s;
+        }
+
+        .about-link:hover {
+            opacity: 0.8;
+        }
+
+        /* 折叠面板 */
+        .collapsible-header {
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .collapsible-header:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+        }
+
+        .collapsible-header.active {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            margin-bottom: 0;
+        }
+
+        .collapsible-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .collapsible-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+        }
+
+        .collapsible-header.active .collapsible-icon {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            margin-bottom: 12px;
+            opacity: 0;
+            transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease, margin-bottom 0.3s ease;
+        }
+
+        .collapsible-content.active {
+            max-height: 800px;
+            padding: 16px;
+            opacity: 1;
+        }
+
+        /* 状态指示器 */
+        .status-indicator {
+            padding: 12px;
+            background: var(--success-bg);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--success);
+            margin-bottom: 16px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-indicator.warning {
+            background: var(--warning-bg);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .status-indicator.error {
+            background: #fce8e6;
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* 右侧模拟页面 */
+        .mock-page {
+            flex: 1;
+            background: var(--bg-secondary);
+            overflow-y: auto;
+            padding: 40px;
+            position: relative;
+        }
+
+        .mock-page-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .mock-page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .mock-page-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .mock-form {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+        }
+
+        .mock-form-group {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .mock-form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 操作栏 - 输入框交互按钮 */
+        .action-bar {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            margin-bottom: 4px;
+            display: flex;
+            gap: 6px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(4px);
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .mock-form-group.active .action-bar {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* 操作按钮 */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--text-tertiary);
+        }
+
+        .action-btn.primary {
+            background: #1f87fc;
+            color: white;
+            border-color: #1f87fc;
+        }
+
+        .action-btn.primary:hover {
+            background: #0d6edb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .action-btn.primary {
+                background: #4d9fff;
+                border-color: #4d9fff;
+            }
+
+            .action-btn.primary:hover {
+                background: #1f87fc;
+            }
+        }
+
+        .action-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* 下拉菜单 */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            min-width: 160px;
+            padding: 6px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+            z-index: 200;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .dropdown-item svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* 缓存确认按钮 */
+        .cache-confirm-btn {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: #1f87fc;
+            border: 1px solid #1f87fc;
+            border-radius: 6px;
+            font-size: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .cache-confirm-btn {
+                background: #4d9fff;
+                border-color: #4d9fff;
+            }
+        }
+
+        .cache-confirm-btn:hover {
+            background: #0d6edb;
+        }
+
+        .cache-confirm-btn.visible {
+            display: inline-flex;
+        }
+
+        .cache-confirm-btn.success {
+            background: #35a557;
+            border-color: #35a557;
+        }
+
+        .cache-confirm-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* 有缓存值的输入框样式 */
+        .mock-input.has-cache,
+        .mock-textarea.has-cache {
+            border-color: #1f87fc;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .mock-input.has-cache,
+            .mock-textarea.has-cache {
+                border-color: #4d9fff;
+            }
+        }
+
+        .mock-input.has-cache::placeholder,
+        .mock-textarea.has-cache::placeholder {
+            color: #1f87fc;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .mock-input.has-cache::placeholder,
+            .mock-textarea.has-cache::placeholder {
+                color: #4d9fff;
+            }
+        }
+
+        /* 填充和完成状态动画 */
+        .mock-input.filling,
+        .mock-textarea.filling {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+        }
+
+        .mock-input.filled,
+        .mock-textarea.filled {
+            border-color: #2d8f47;
+            background-color: rgba(45, 143, 71, 0.05);
+            animation: filled-bounce 0.4s ease;
+        }
+
+        @keyframes filled-bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .mock-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .mock-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .mock-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+        }
+
+        .mock-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .mock-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            transition: all 0.2s;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .mock-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+        }
+
+        .mock-textarea::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .mock-submit {
+            width: 100%;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 24px;
+        }
+
+        .mock-submit:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .mock-submit:active {
+            transform: translateY(0);
+        }
+
+        /* Demo 控制面板 */
+        .demo-controls {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: var(--shadow-md);
+            min-width: 140px;
+            z-index: 50;
+        }
+
+        .demo-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .demo-btn {
+            width: 100%;
+            padding: 6px 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 6px;
+        }
+
+        .demo-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        .demo-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary);
+        }
+
+        /* 表单扫描波纹效果 */
+        .scan-ripple {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(66, 133, 244, 0.15) 50%, 
+                transparent 100%
+            );
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .scan-ripple.active {
+            animation: scan-wave 1.5s ease-in-out;
+        }
+
+        @keyframes scan-wave {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        /* AI 扫描状态 - 脉冲高亮 */
+        .mock-input.ai-scanning,
+        .mock-textarea.ai-scanning {
+            border-color: #f59e0b;
+            animation: pulse-scanning 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-scanning {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 8px rgba(245, 158, 11, 0);
+            }
+        }
+
+        /* AI 识别完成状态 - 浅色背景 */
+        .mock-input.ai-recognized,
+        .mock-textarea.ai-recognized {
+            background: rgba(66, 133, 244, 0.04);
+            border-color: rgba(66, 133, 244, 0.3);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .mock-input.ai-recognized,
+            .mock-textarea.ai-recognized {
+                background: rgba(138, 180, 248, 0.08);
+                border-color: rgba(138, 180, 248, 0.3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+    <div class="sidebar">
+        <!-- 顶部栏 -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Z"/>
+                    </svg>
+                </div>
+                AI Former
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="window.open('v2-settings-redesign.html', '_blank')" title="设置">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 引导横幅 -->
+        <div class="onboarding-banner" id="onboarding">
+            <button class="onboarding-close" onclick="closeOnboarding()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <div class="onboarding-title">🎉 欢迎使用 AI Former</div>
+            <div class="onboarding-text">首次使用请先配置 API Key 和知识库，即可开始智能填充</div>
+            <button class="onboarding-action" onclick="window.open('v2-settings-redesign.html', '_blank')">
+                前往设置
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- 主内容 -->
+        <div class="content">
+            <!-- 快捷操作 -->
+            <div class="quick-actions">
+                <div class="quick-action" onclick="scanForm()">
+                    <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="2" width="6" height="20" rx="1"/>
+                        <rect x="3" y="6" width="18" height="12" rx="1"/>
+                    </svg>
+                    <div class="quick-action-text">识别表单</div>
+                </div>
+                <div class="quick-action" onclick="quickFill()">
+                    <svg class="quick-action-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                    </svg>
+                    <div class="quick-action-text">快速填充</div>
+                </div>
+                <div class="quick-action" onclick="learnContent()">
+                    <svg class="quick-action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                    </svg>
+                    <div class="quick-action-text">学习内容</div>
+                </div>
+            </div>
+
+            <!-- 状态指示 -->
+            <div id="status-container"></div>
+
+            <!-- 填充要求 -->
+            <div class="collapsible-header active" onclick="toggleCollapsible(this)">
+                <span class="collapsible-title">填充要求</span>
+                <svg class="collapsible-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </div>
+            <div class="collapsible-content active">
+                <div class="input-group">
+                    <label class="input-label">输入你的特殊要求（可选）</label>
+                    <textarea class="textarea" placeholder="例如：重点突出我的技术能力，语气要专业..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="fillForm()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                    </svg>
+                    开始智能填充
+                </button>
+            </div>
+
+            <!-- 历史记录 -->
+            <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                <span class="collapsible-title">历史记录</span>
+                <svg class="collapsible-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </div>
+            <div class="collapsible-content">
+                <div class="history-list">
+                    <div class="history-item" onclick="fillHistoryPrompt(this)">重点突出我的技术能力，语气要专业</div>
+                    <div class="history-item" onclick="fillHistoryPrompt(this)">简洁明了，适合投递互联网公司</div>
+                    <div class="history-item" onclick="fillHistoryPrompt(this)">突出我的管理经验</div>
+                </div>
+            </div>
+
+            <!-- 知识库 -->
+            <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                <span class="collapsible-title">我的知识库</span>
+                <svg class="collapsible-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </div>
+            <div class="collapsible-content">
+                <div class="knowledge-item">
+                    <div class="knowledge-checkbox">
+                        <input type="checkbox" class="checkbox" checked>
+                    </div>
+                    <div class="knowledge-info">
+                        <div class="knowledge-name">个人简历档案</div>
+                        <div class="knowledge-desc">包含基本信息、教育背景、工作经历</div>
+                    </div>
+                </div>
+                <div class="knowledge-item">
+                    <div class="knowledge-checkbox">
+                        <input type="checkbox" class="checkbox">
+                    </div>
+                    <div class="knowledge-info">
+                        <div class="knowledge-name">公司信息档案</div>
+                        <div class="knowledge-desc">公司名称、地址、联系方式</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="window.open('v2-settings-redesign.html#knowledge', '_blank')" style="margin-top: 12px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v6m0 6v6"/>
+                    </svg>
+                    管理档案
+                </button>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <div class="footer-links">
+                <a class="footer-link" onclick="showAbout()">关于</a>
+                <span class="footer-divider">·</span>
+                <a href="#" class="footer-link">反馈</a>
+                <span class="footer-divider">·</span>
+                <a href="#" class="footer-link">帮助</a>
+                <span class="footer-divider">·</span>
+                <span style="color: var(--text-tertiary); font-size: 11px;">v2.0</span>
+            </div>
+            <a href="https://github.com/itshen/ai_former" target="_blank" class="github-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+                GitHub
+            </a>
+        </div>
+    </div>
+
+    <!-- 关于页面 -->
+    <div class="about-page" id="aboutPage">
+        <div class="about-header">
+            <button class="about-back" onclick="hideAbout()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                返回
+            </button>
+        </div>
+        <div class="about-content">
+            <div class="about-intro">
+                <div class="about-greeting">嗨，我是洛小山 👋</div>
+                <div class="about-description">
+                    白天是个爱折腾的 AI 产品经理<br>
+                    晚上是个快乐的小开发~
+                </div>
+            </div>
+
+            <div class="about-section">
+                <div class="about-section-title">🎯 关于这个工具</div>
+                <div class="about-section-content">
+                    这是我根据公众号读者的需求开发的智能表单填充工具，希望能帮你省下宝贵的时间！
+                </div>
+            </div>
+
+            <div class="about-section">
+                <div class="about-section-title">🚀 更多好玩的</div>
+                <div class="about-section-content">
+                    我还在捣鼓更多有趣的 AI 小工具，会在公众号<strong>【洛小山】</strong>和大家分享：
+                    <ul>
+                        <li>各种实用的 AI 工具</li>
+                        <li>有趣的技术教程</li>
+                        <li>AI 技术到产品的实践</li>
+                        <li>AI 产品拆解</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="about-section">
+                <div class="about-section-title">💡 期待你的想法</div>
+                <div class="about-section-content">
+                    在日常工作或生活中，有没有觉得"要是有个 AI 工具能帮我做这个就好了"？欢迎扫码和我聊聊，说不定你的小需求就能变成下一个实用工具！
+                </div>
+            </div>
+
+            <div class="about-section">
+                <div class="about-section-title">🐛 遇到问题？</div>
+                <div class="about-section-content">
+                    开发不易，难免有 bug ~ 如果你发现了什么问题，欢迎来和我说说，我会及时修复的！你的反馈就是对我最好的支持 😊
+                </div>
+            </div>
+
+            <div class="about-section">
+                <div class="about-section-title">🏠 个人主页</div>
+                <div class="about-section-content">
+                    <a href="https://luoxiaoshan.cn" target="_blank" class="about-link">
+                        luoxiaoshan.cn
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            <polyline points="15 3 21 3 21 9"/>
+                            <line x1="10" y1="14" x2="21" y2="3"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="about-qr-container">
+                <div class="about-qr-item">
+                    <div class="about-qr-box">
+                        <img src="../qrcode.jpg" alt="公众号二维码" onerror="this.parentElement.innerHTML='<div class=\'about-qr-placeholder\'>扫码关注</div>'">
+                    </div>
+                    <div class="about-qr-label">关注公众号<br>学习更多 AI 技巧</div>
+                </div>
+                <div class="about-qr-item">
+                    <div class="about-qr-box">
+                        <img src="../sponsor.jpg" alt="赞赏码" onerror="this.parentElement.innerHTML='<div class=\'about-qr-placeholder\'>赞赏支持</div>'">
+                    </div>
+                    <div class="about-qr-label">开源不易<br>感谢支持一杯咖啡</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧模拟页面 -->
+    <div class="mock-page">
+        <div class="scan-ripple" id="scanRipple"></div>
+        <div class="mock-page-content">
+            <h1 class="mock-page-title">用户注册表单</h1>
+            <p class="mock-page-subtitle">
+                这是一个模拟的表单页面，用于展示侧边栏与表单的交互效果。点击表单字段可以看到 AI Former 的智能填充功能。
+            </p>
+            
+            <div class="mock-form">
+                <div class="mock-form-group">
+                    <label class="mock-label">姓名 *</label>
+                    <div class="action-bar">
+                        <div class="dropdown">
+                            <button class="action-btn primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 4V2m0 14v-3M3 10h18M3 18h12m1.6-9.842 2.006-1.49a1 1 0 0 1 1.388.267l1.556 2.1a1 1 0 0 1-.267 1.388l-2.006 1.49m-2.677 7.89-2.006 1.489a1 1 0 0 1-1.388-.267l-1.556-2.1a1 1 0 0 1 .267-1.388l2.006-1.49m2.677-3.698 3.93-2.917m-6.607 6.615-3.93 2.917"/>
+                                </svg>
+                                填充
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="quickFillSingle(this)">快速填充（基于映射）</div>
+                                <div class="dropdown-item" onclick="intelligentFillSingle(this)">智能填充（AI 生成）</div>
+                                <div class="dropdown-item" onclick="fillForm()">填充整个表单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" class="mock-input" placeholder="请输入您的姓名">
+                </div>
+                
+                <div class="mock-form-group">
+                    <label class="mock-label">邮箱 *</label>
+                    <div class="action-bar">
+                        <div class="dropdown">
+                            <button class="action-btn primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 4V2m0 14v-3M3 10h18M3 18h12m1.6-9.842 2.006-1.49a1 1 0 0 1 1.388.267l1.556 2.1a1 1 0 0 1-.267 1.388l-2.006 1.49m-2.677 7.89-2.006 1.489a1 1 0 0 1-1.388-.267l-1.556-2.1a1 1 0 0 1 .267-1.388l2.006-1.49m2.677-3.698 3.93-2.917m-6.607 6.615-3.93 2.917"/>
+                                </svg>
+                                填充
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="quickFillSingle(this)">快速填充（基于映射）</div>
+                                <div class="dropdown-item" onclick="intelligentFillSingle(this)">智能填充（AI 生成）</div>
+                                <div class="dropdown-item" onclick="fillForm()">填充整个表单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="email" class="mock-input" placeholder="example@email.com">
+                </div>
+                
+                <div class="mock-form-group">
+                    <label class="mock-label">手机号 *</label>
+                    <div class="action-bar">
+                        <div class="dropdown">
+                            <button class="action-btn primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 4V2m0 14v-3M3 10h18M3 18h12m1.6-9.842 2.006-1.49a1 1 0 0 1 1.388.267l1.556 2.1a1 1 0 0 1-.267 1.388l-2.006 1.49m-2.677 7.89-2.006 1.489a1 1 0 0 1-1.388-.267l-1.556-2.1a1 1 0 0 1 .267-1.388l2.006-1.49m2.677-3.698 3.93-2.917m-6.607 6.615-3.93 2.917"/>
+                                </svg>
+                                填充
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="quickFillSingle(this)">快速填充（基于映射）</div>
+                                <div class="dropdown-item" onclick="intelligentFillSingle(this)">智能填充（AI 生成）</div>
+                                <div class="dropdown-item" onclick="fillForm()">填充整个表单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="tel" class="mock-input" placeholder="请输入手机号码">
+                </div>
+                
+                <div class="mock-form-group">
+                    <label class="mock-label">公司名称</label>
+                    <div class="action-bar">
+                        <div class="dropdown">
+                            <button class="action-btn primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 4V2m0 14v-3M3 10h18M3 18h12m1.6-9.842 2.006-1.49a1 1 0 0 1 1.388.267l1.556 2.1a1 1 0 0 1-.267 1.388l-2.006 1.49m-2.677 7.89-2.006 1.489a1 1 0 0 1-1.388-.267l-1.556-2.1a1 1 0 0 1 .267-1.388l2.006-1.49m2.677-3.698 3.93-2.917m-6.607 6.615-3.93 2.917"/>
+                                </svg>
+                                填充
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="quickFillSingle(this)">快速填充（基于映射）</div>
+                                <div class="dropdown-item" onclick="intelligentFillSingle(this)">智能填充（AI 生成）</div>
+                                <div class="dropdown-item" onclick="fillForm()">填充整个表单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" class="mock-input" placeholder="请输入公司名称">
+                </div>
+                
+                <div class="mock-form-group">
+                    <label class="mock-label">职位</label>
+                    <div class="action-bar">
+                        <div class="dropdown">
+                            <button class="action-btn primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 4V2m0 14v-3M3 10h18M3 18h12m1.6-9.842 2.006-1.49a1 1 0 0 1 1.388.267l1.556 2.1a1 1 0 0 1-.267 1.388l-2.006 1.49m-2.677 7.89-2.006 1.489a1 1 0 0 1-1.388-.267l-1.556-2.100 a1 1 0 0 1 .267-1.388l2.006-1.49m2.677-3.698 3.93-2.917m-6.607 6.615-3.93 2.917"/>
+                                </svg>
+                                填充
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="quickFillSingle(this)">快速填充（基于映射）</div>
+                                <div class="dropdown-item" onclick="intelligentFillSingle(this)">智能填充（AI 生成）</div>
+                                <div class="dropdown-item" onclick="fillForm()">填充整个表单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" class="mock-input" placeholder="请输入您的职位">
+                </div>
+                
+                <div class="mock-form-group">
+                    <label class="mock-label">个人简介 *</label>
+                    <div class="action-bar">
+                        <div class="dropdown">
+                            <button class="action-btn primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M15 4V2m0 14v-3M3 10h18M3 18h12m1.6-9.842 2.006-1.49a1 1 0 0 1 1.388.267l1.556 2.1a1 1 0 0 1-.267 1.388l-2.006 1.49m-2.677 7.89-2.006 1.489a1 1 0 0 1-1.388-.267l-1.556-2.1a1 1 0 0 1 .267-1.388l2.006-1.49m2.677-3.698 3.93-2.917m-6.607 6.615-3.93 2.917"/>
+                                </svg>
+                                填充
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="quickFillSingle(this)">快速填充（基于映射）</div>
+                                <div class="dropdown-item" onclick="intelligentFillSingle(this)">智能填充（AI 生成）</div>
+                                <div class="dropdown-item" onclick="fillForm()">填充整个表单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea class="mock-textarea" placeholder="请简要介绍一下自己，包括工作经历、技能特长等..."></textarea>
+                </div>
+                
+                <button class="mock-submit">提交注册</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Demo 控制面板 -->
+    <div class="demo-controls">
+        <div class="demo-title">🎮 Demo</div>
+        <button class="demo-btn" onclick="toggleOnboarding()">切换引导</button>
+        <button class="demo-btn" onclick="showStatus('表单识别')">显示状态</button>
+        <button class="demo-btn" onclick="showAbout()">打开关于</button>
+    </div>
+
+    <script>
+        function closeOnboarding() {
+            document.getElementById('onboarding').style.display = 'none';
+        }
+
+        function toggleOnboarding() {
+            const banner = document.getElementById('onboarding');
+            if (banner.style.display === 'none') {
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
+        function toggleCollapsible(header) {
+            const content = header.nextElementSibling;
+            const isActive = header.classList.contains('active');
+            
+            if (isActive) {
+                header.classList.remove('active');
+                content.classList.remove('active');
+            } else {
+                header.classList.add('active');
+                content.classList.add('active');
+            }
+        }
+
+        function showStatus(action) {
+            const container = document.getElementById('status-container');
+            const status = document.createElement('div');
+            status.className = 'status-indicator';
+            status.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                ${action}成功
+            `;
+            container.innerHTML = '';
+            container.appendChild(status);
+            setTimeout(() => status.remove(), 3000);
+        }
+
+        function fillForm() {
+            const btn = document.querySelector('.btn-primary');
+            const textarea = document.querySelector('.textarea');
+            const ripple = document.getElementById('scanRipple');
+            const inputs = document.querySelectorAll('.mock-input, .mock-textarea');
+            
+            // 第一步：扫描表单
+            ripple.classList.remove('active');
+            void ripple.offsetWidth;
+            ripple.classList.add('active');
+            showStatus('识别表单');
+            
+            // 逐个扫描识别
+            inputs.forEach((input, index) => {
+                setTimeout(() => {
+                    input.classList.add('ai-scanning');
+                    setTimeout(() => {
+                        input.classList.remove('ai-scanning');
+                        input.classList.add('ai-recognized');
+                    }, 800);
+                }, index * 150);
+            });
+            
+            // 识别完成后开始智能填充
+            setTimeout(() => {
+                // 禁用按钮，显示加载状态
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
+                    正在填充...
+                `;
+                
+                showStatus('调用 AI');
+                
+                setTimeout(() => {
+                    showStatus('开始填充');
+                    
+                    // 模拟数据
+                    const demoData = [
+                        { selector: 0, value: '张明', delay: 0 },
+                        { selector: 1, value: 'zhangming@example.com', delay: 400 },
+                        { selector: 2, value: '13800138000', delay: 800 },
+                        { selector: 3, value: '金山办公', delay: 1200 },
+                        { selector: 4, value: '高级前端工程师', delay: 1600 },
+                        { selector: 5, value: '拥有5年前端开发经验，精通 React、Vue 等主流框架，擅长性能优化和工程化建设。曾主导多个大型项目的前端架构设计，对用户体验和代码质量有较高追求。', delay: 2000 }
+                    ];
+                    
+                    // 逐个填充字段
+                    demoData.forEach(item => {
+                        setTimeout(() => {
+                            const input = inputs[item.selector];
+                            
+                            // 移除识别状态
+                            input.classList.remove('ai-recognized');
+                            
+                            // 添加扫描动画
+                            input.style.borderColor = 'var(--primary)';
+                            input.style.boxShadow = '0 0 0 3px rgba(66, 133, 244, 0.2)';
+                            
+                            // 打字机效果
+                            let currentText = '';
+                            let charIndex = 0;
+                            const typeInterval = setInterval(() => {
+                                if (charIndex < item.value.length) {
+                                    currentText += item.value[charIndex];
+                                    input.value = currentText;
+                                    charIndex++;
+                                } else {
+                                    clearInterval(typeInterval);
+                                    
+                                    // 完成动画
+                                    input.style.borderColor = '#2d8f47';
+                                    input.style.backgroundColor = 'rgba(45, 143, 71, 0.05)';
+                                    
+                                    setTimeout(() => {
+                                        input.style.borderColor = '';
+                                        input.style.boxShadow = '';
+                                        input.style.backgroundColor = '';
+                                    }, 500);
+                                }
+                            }, 30);
+                        }, item.delay);
+                    });
+                }, 1000);
+                
+                // 完成
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                        </svg>
+                        开始智能填充
+                    `;
+                    showStatus('填充完成');
+                }, 5500);
+            }, inputs.length * 150 + 1000);
+        }
+
+        function fillHistoryPrompt(item) {
+            const textarea = document.querySelector('.textarea');
+            textarea.value = item.textContent;
+            textarea.focus();
+        }
+
+        function showAbout() {
+            document.getElementById('aboutPage').classList.add('active');
+        }
+
+        function hideAbout() {
+            document.getElementById('aboutPage').classList.remove('active');
+        }
+
+        // 扫描表单动画
+        function scanForm() {
+            const ripple = document.getElementById('scanRipple');
+            const inputs = document.querySelectorAll('.mock-input, .mock-textarea');
+            
+            // 触发扫描波纹
+            ripple.classList.remove('active');
+            void ripple.offsetWidth; // 触发重绘
+            ripple.classList.add('active');
+            
+            // 显示状态
+            showStatus('识别表单');
+            
+            // 逐个扫描输入框
+            inputs.forEach((input, index) => {
+                setTimeout(() => {
+                    input.classList.add('ai-scanning');
+                    
+                    // 扫描完成后移除动画，添加识别完成状态
+                    setTimeout(() => {
+                        input.classList.remove('ai-scanning');
+                        input.classList.add('ai-recognized');
+                    }, 1500);
+                }, index * 200);
+            });
+            
+            // 完成提示
+            setTimeout(() => {
+                showStatus('识别完成');
+            }, inputs.length * 200 + 1500);
+        }
+
+        // 快速填充（基于预设映射）
+        function quickFill() {
+            const ripple = document.getElementById('scanRipple');
+            const inputs = document.querySelectorAll('.mock-input, .mock-textarea');
+            
+            // 第一步：扫描表单
+            ripple.classList.remove('active');
+            void ripple.offsetWidth;
+            ripple.classList.add('active');
+            showStatus('识别表单');
+            
+            // 逐个扫描识别
+            inputs.forEach((input, index) => {
+                setTimeout(() => {
+                    input.classList.add('ai-scanning');
+                    setTimeout(() => {
+                        input.classList.remove('ai-scanning');
+                        input.classList.add('ai-recognized');
+                    }, 800);
+                }, index * 150);
+            });
+            
+            // 识别完成后开始填充
+            setTimeout(() => {
+                showStatus('快速填充');
+                
+                // 模拟预设映射数据
+                const mappingData = [
+                    { value: '张明' },
+                    { value: 'zhangming@example.com' },
+                    { value: '13800138000' },
+                    { value: '金山办公' },
+                    { value: '高级前端工程师' },
+                    { value: '拥有5年前端开发经验，精通 React、Vue 等主流框架。' }
+                ];
+                
+                let filledCount = 0;
+                let skippedCount = 0;
+                
+                // 逐个填充字段（跳过已有内容）
+                inputs.forEach((input, index) => {
+                    setTimeout(() => {
+                        if (mappingData[index]) {
+                            // 检查是否已有内容
+                            if (input.value.trim() !== '') {
+                                // 跳过已有内容的字段
+                                skippedCount++;
+                                input.classList.remove('ai-recognized');
+                                return;
+                            }
+                            
+                            input.classList.remove('ai-recognized');
+                            
+                            // 高亮动画
+                            input.style.borderColor = 'var(--primary)';
+                            input.style.boxShadow = '0 0 0 3px rgba(66, 133, 244, 0.2)';
+                            
+                            // 直接填充值
+                            input.value = mappingData[index].value;
+                            filledCount++;
+                            
+                            // 完成动画
+                            setTimeout(() => {
+                                input.style.borderColor = '#2d8f47';
+                                input.style.backgroundColor = 'rgba(45, 143, 71, 0.05)';
+                                
+                                setTimeout(() => {
+                                    input.style.borderColor = '';
+                                    input.style.boxShadow = '';
+                                    input.style.backgroundColor = '';
+                                }, 400);
+                            }, 200);
+                        }
+                    }, index * 150);
+                });
+                
+                // 完成提示
+                setTimeout(() => {
+                    if (filledCount === 0) {
+                        showStatus('所有字段已填写，无需填充');
+                    } else if (skippedCount > 0) {
+                        showStatus(`已填充 ${filledCount} 个字段，跳过 ${skippedCount} 个已有内容`);
+                    } else {
+                        showStatus('填充完成');
+                    }
+                }, inputs.length * 150 + 600);
+            }, inputs.length * 150 + 1000);
+        }
+
+        // 学习内容（学习映射关系 + 保存到知识库）
+        function learnContent() {
+            const inputs = document.querySelectorAll('.mock-input, .mock-textarea');
+            
+            // 检查是否有已填写的内容
+            const filledInputs = Array.from(inputs).filter(input => input.value.trim() !== '');
+            
+            if (filledInputs.length === 0) {
+                // 显示错误状态
+                const container = document.getElementById('status-container');
+                const status = document.createElement('div');
+                status.className = 'status-indicator';
+                status.style.background = 'rgba(239, 68, 68, 0.1)';
+                status.style.color = '#ef4444';
+                status.style.border = '1px solid rgba(239, 68, 68, 0.2)';
+                status.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    表单为空，无法学习
+                `;
+                container.innerHTML = '';
+                container.appendChild(status);
+                setTimeout(() => status.remove(), 3000);
+                return;
+            }
+            
+            showStatus('学习中');
+            
+            // 模拟学习过程
+            setTimeout(() => {
+                // 第一步：提取字段映射
+                const mappings = [];
+                const labels = ['姓名', '邮箱', '手机号', '公司', '职位', '个人简介'];
+                filledInputs.forEach((input, index) => {
+                    if (input.value) {
+                        mappings.push({
+                            field: labels[Array.from(inputs).indexOf(input)] || `字段${index + 1}`,
+                            value: input.value
+                        });
+                    }
+                });
+                
+                // 第二步：显示学习结果
+                showStatus('学习完成');
+                
+                // 模拟添加到知识库提示
+                setTimeout(() => {
+                    const container = document.getElementById('status-container');
+                    const status = document.createElement('div');
+                    status.className = 'status-indicator';
+                    status.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        已学习 ${mappings.length} 个字段映射，并保存到知识库
+                    `;
+                    container.innerHTML = '';
+                    container.appendChild(status);
+                    setTimeout(() => status.remove(), 4000);
+                }, 500);
+            }, 1500);
+        }
+
+        // 添加旋转动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

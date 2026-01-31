@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Former v2 - 输入框交互动效</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #4285f4;
+            --primary-hover: #3367d6;
+            --primary-light: #e8f0fe;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --text-tertiary: #80868b;
+            --border: #dadce0;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f4;
+            --success: #34a853;
+            --warning: #fbbc04;
+            --error: #ea4335;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #8ab4f8;
+                --primary-hover: #aecbfa;
+                --primary-light: #1a3a5c;
+                --text-primary: #e8eaed;
+                --text-secondary: #9aa0a6;
+                --text-tertiary: #80868b;
+                --border: #3c4043;
+                --bg-primary: #202124;
+                --bg-secondary: #292a2d;
+                --bg-tertiary: #35363a;
+                --success: #81c995;
+                --warning: #fdd663;
+                --error: #f28b82;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        /* 输入框基础样式 */
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-input:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* 有缓存值的 placeholder 样式 */
+        .form-input.has-cache {
+            border-color: var(--primary);
+            border-width: 1.5px;
+        }
+
+        .form-input.has-cache::placeholder {
+            color: var(--primary);
+            font-style: italic;
+        }
+
+        /* 文本域 */
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            outline: none;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .form-textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+        }
+
+        /* 输入框包装器 */
+        .input-wrapper {
+            position: relative;
+        }
+
+        /* 操作按钮栏 - 默认隐藏 */
+        .action-bar {
+            position: absolute;
+            top: -36px;
+            right: 0;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(4px);
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .input-wrapper.active .action-bar {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* 操作按钮 */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--text-tertiary);
+        }
+
+        .action-btn.primary {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .action-btn.primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .action-btn.success {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+        }
+
+        /* 下拉按钮 */
+        .dropdown-btn {
+            position: relative;
+        }
+
+        .dropdown-arrow {
+            width: 12px;
+            height: 12px;
+            margin-left: 2px;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            min-width: 160px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+            z-index: 200;
+        }
+
+        .dropdown-btn:hover .dropdown-menu,
+        .dropdown-menu.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+
+        .dropdown-item:first-child {
+            border-radius: 7px 7px 0 0;
+        }
+
+        .dropdown-item:last-child {
+            border-radius: 0 0 7px 7px;
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .dropdown-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
+        .dropdown-item-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .dropdown-item-flag {
+            font-size: 14px;
+        }
+
+        /* 确认缓存按钮 */
+        .cache-confirm-btn {
+            padding: 6px 10px;
+            background: var(--success);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            position: relative;
+        }
+
+        .cache-confirm-btn:hover {
+            background: #2d8f47;
+        }
+
+        .cache-confirm-btn svg {
+            flex-shrink: 0;
+        }
+
+        /* 提示工具 */
+        .tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-size: 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            pointer-events: none;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--text-primary);
+        }
+
+        .cache-confirm-btn:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 加载状态 */
+        .action-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 填充成功动画 */
+        .form-input.filled {
+            animation: fill-success 0.4s ease;
+        }
+
+        @keyframes fill-success {
+            0%, 100% { 
+                border-color: var(--success);
+                box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
+            }
+            50% { 
+                border-color: var(--success);
+                box-shadow: 0 0 0 4px rgba(52, 168, 83, 0.1);
+            }
+        }
+
+        /* Submit 按钮旁边的快捷操作 */
+        .submit-area {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .submit-btn {
+            padding: 12px 32px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-hover);
+        }
+
+        .quick-learn-btn {
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+        }
+
+        .quick-learn-btn:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        /* Demo 区域 */
+        .demo-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .demo-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .demo-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        /* 主题切换 */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 4px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px;
+            z-index: 100;
+        }
+
+        .theme-btn {
+            padding: 6px 10px;
+            font-size: 11px;
+            border: none;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+
+        .theme-btn.active {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* 翻译语言选择 */
+        .lang-menu {
+            min-width: 180px;
+        }
+
+        .lang-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lang-flag {
+            font-size: 16px;
+        }
+
+        .lang-name {
+            flex: 1;
+        }
+
+        /* 流式填充效果 */
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        .typing-effect {
+            overflow: hidden;
+            white-space: nowrap;
+            animation: typing 1s steps(20, end);
+        }
+    </style>
+</head>
+<body>
+    <!-- 主题切换 -->
+    <div class="theme-toggle">
+        <button class="theme-btn active" onclick="setTheme('auto', this)">自动</button>
+        <button class="theme-btn" onclick="setTheme('light', this)">浅色</button>
+        <button class="theme-btn" onclick="setTheme('dark', this)">深色</button>
+    </div>
+
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 8px;">输入框交互动效</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">点击输入框后显示操作按钮，支持填充、翻译等功能</p>
+
+        <!-- Demo 1: 单行输入框 -->
+        <div class="demo-section">
+            <h2 class="demo-title">1. 单行输入框 - 点击显示操作按钮</h2>
+            <p class="demo-desc">点击输入框后，在上方显示填充和翻译按钮</p>
+
+            <div class="form-group">
+                <label class="form-label">姓名</label>
+                <div class="input-wrapper" id="input1-wrapper">
+                    <div class="action-bar">
+                        <!-- 缓存确认按钮 (当有缓存时显示) -->
+                        <button class="cache-confirm-btn" onclick="confirmCache('input1')" id="input1-cache-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <div class="tooltip">填充为: 张三</div>
+                        </button>
+                        
+                        <!-- 翻译按钮 -->
+                        <div class="dropdown-btn">
+                            <button class="action-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 8l6 6"/>
+                                    <path d="M4 14l6-6 2-3"/>
+                                    <path d="M2 5h12"/>
+                                    <path d="M7 2v3"/>
+                                    <path d="M22 22l-5-10-5 10"/>
+                                    <path d="M14 18h6"/>
+                                </svg>
+                                翻译
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu lang-menu">
+                                <div class="dropdown-item lang-item" onclick="translateTo('input1', 'zh-CN')">
+                                    <span class="lang-flag">🇨🇳</span>
+                                    <span class="lang-name">简体中文</span>
+                                </div>
+                                <div class="dropdown-item lang-item" onclick="translateTo('input1', 'zh-TW')">
+                                    <span class="lang-flag">🇭🇰</span>
+                                    <span class="lang-name">繁體中文</span>
+                                </div>
+                                <div class="dropdown-item lang-item" onclick="translateTo('input1', 'en')">
+                                    <span class="lang-flag">🇬🇧</span>
+                                    <span class="lang-name">English</span>
+                                </div>
+                                <div class="dropdown-item lang-item" onclick="translateTo('input1', 'ru')">
+                                    <span class="lang-flag">🇷🇺</span>
+                                    <span class="lang-name">Русский</span>
+                                </div>
+                                <div class="dropdown-item lang-item" onclick="translateTo('input1', 'ko')">
+                                    <span class="lang-flag">🇰🇷</span>
+                                    <span class="lang-name">한국어</span>
+                                </div>
+                                <div class="dropdown-item lang-item" onclick="translateTo('input1', 'ja')">
+                                    <span class="lang-flag">🇯🇵</span>
+                                    <span class="lang-name">日本語</span>
+                                </div>
+                                <div class="dropdown-item lang-item" onclick="translateTo('input1', 'es')">
+                                    <span class="lang-flag">🇪🇸</span>
+                                    <span class="lang-name">Español</span>
+                                </div>
+                                <div class="dropdown-item lang-item" onclick="translateTo('input1', 'pt')">
+                                    <span class="lang-flag">🇵🇹</span>
+                                    <span class="lang-name">Português</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 填充按钮 -->
+                        <div class="dropdown-btn">
+                            <button class="action-btn primary" id="input1-fill-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                </svg>
+                                填充
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="fillInput('input1', 'auto')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                    </svg>
+                                    一键填充
+                                </div>
+                                <div class="dropdown-item" onclick="fillInput('input1', 'custom')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    基于我的要求填充
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item" onclick="fillInput('input1', 'all')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <line x1="9" y1="9" x2="15" y2="9"/>
+                                        <line x1="9" y1="13" x2="15" y2="13"/>
+                                        <line x1="9" y1="17" x2="13" y2="17"/>
+                                    </svg>
+                                    填充整个表单
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="text" class="form-input" id="input1" placeholder="请输入姓名" onfocus="activateInput('input1-wrapper')" onblur="deactivateInput('input1-wrapper')">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">邮箱</label>
+                <div class="input-wrapper" id="input2-wrapper">
+                    <div class="action-bar">
+                        <button class="cache-confirm-btn" onclick="confirmCache('input2')" id="input2-cache-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            <div class="tooltip">填充为: zhangsan@example.com</div>
+                        </button>
+                        <div class="dropdown-btn">
+                            <button class="action-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2v3"/>
+                                    <path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/>
+                                </svg>
+                                翻译
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="dropdown-menu lang-menu">
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇨🇳</span><span class="lang-name">简体中文</span></div>
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇬🇧</span><span class="lang-name">English</span></div>
+                            </div>
+                        </div>
+                        <div class="dropdown-btn">
+                            <button class="action-btn primary">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                </svg>
+                                填充
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="fillInput('input2', 'auto')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                    </svg>
+                                    一键填充
+                                </div>
+                                <div class="dropdown-item" onclick="fillInput('input2', 'custom')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    基于我的要求填充
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item" onclick="fillInput('input2', 'all')">填充整个表单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="email" class="form-input" id="input2" placeholder="请输入邮箱" onfocus="activateInput('input2-wrapper')" onblur="deactivateInput('input2-wrapper')">
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo 2: 多行文本框 -->
+        <div class="demo-section">
+            <h2 class="demo-title">2. 多行文本框 - 带内容时的交互</h2>
+            <p class="demo-desc">文本框已有内容时，填充会询问是否基于原内容修改</p>
+
+            <div class="form-group">
+                <label class="form-label">个人简介</label>
+                <div class="input-wrapper" id="textarea1-wrapper">
+                    <div class="action-bar">
+                        <div class="dropdown-btn">
+                            <button class="action-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2v3"/>
+                                    <path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/>
+                                </svg>
+                                翻译
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="dropdown-menu lang-menu">
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇨🇳</span><span class="lang-name">简体中文</span></div>
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇭🇰</span><span class="lang-name">繁體中文</span></div>
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇬🇧</span><span class="lang-name">English</span></div>
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇷🇺</span><span class="lang-name">Русский</span></div>
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇰🇷</span><span class="lang-name">한국어</span></div>
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇯🇵</span><span class="lang-name">日本語</span></div>
+                            </div>
+                        </div>
+                        <div class="dropdown-btn">
+                            <button class="action-btn primary" id="textarea1-fill-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                </svg>
+                                填充
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="fillTextarea('textarea1', 'auto')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                    </svg>
+                                    一键填充
+                                </div>
+                                <div class="dropdown-item" onclick="fillTextarea('textarea1', 'custom')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    基于我的要求填充
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item" onclick="fillTextarea('textarea1', 'all')">填充整个表单</div>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea class="form-textarea" id="textarea1" placeholder="请输入个人简介" onfocus="activateInput('textarea1-wrapper')" onblur="deactivateInput('textarea1-wrapper')">我是一名有 5 年经验的软件工程师，专注于前端开发。</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo 3: 有缓存的输入框 -->
+        <div class="demo-section">
+            <h2 class="demo-title">3. 有缓存值的输入框</h2>
+            <p class="demo-desc">之前填充过的字段会缓存，placeholder 显示缓存值，点击确认按钮一键填充</p>
+
+                <div class="form-group">
+                    <label class="form-label">手机号码 <span style="font-size: 11px; color: var(--primary);">(有缓存)</span></label>
+                    <div class="input-wrapper" id="input3-wrapper">
+                        <div class="action-bar">
+                            <button class="cache-confirm-btn" id="input3-cache-btn" onclick="confirmCache('input3')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                <div class="tooltip">填充为: 13800138000</div>
+                            </button>
+                            <div class="dropdown-btn">
+                                <button class="action-btn">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2v3"/>
+                                        <path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/>
+                                    </svg>
+                                    翻译
+                                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </button>
+                                <div class="dropdown-menu lang-menu">
+                                    <div class="dropdown-item lang-item"><span class="lang-flag">🇨🇳</span><span class="lang-name">简体中文</span></div>
+                                    <div class="dropdown-item lang-item"><span class="lang-flag">🇬🇧</span><span class="lang-name">English</span></div>
+                                </div>
+                            </div>
+                            <div class="dropdown-btn">
+                                <button class="action-btn primary">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                    </svg>
+                                    填充
+                                    <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <div class="dropdown-item" onclick="fillInput('input3', 'auto')">
+                                        <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                        </svg>
+                                        一键填充
+                                    </div>
+                                    <div class="dropdown-item" onclick="fillInput('input3', 'custom')">
+                                        <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
+                                        基于我的要求填充
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="tel" class="form-input has-cache" id="input3" placeholder="💡 13800138000" onfocus="activateInput('input3-wrapper')" onblur="deactivateInput('input3-wrapper')">
+                    </div>
+                </div>
+        </div>
+
+        <!-- Demo 4: 自定义要求输入框 -->
+        <div class="demo-section">
+            <h2 class="demo-title">4. 基于要求填充 - 弹出输入框</h2>
+            <p class="demo-desc">点击"基于我的要求填充"后，弹出输入框让用户输入具体要求</p>
+
+            <div class="form-group">
+                <label class="form-label">工作经历</label>
+                <div class="input-wrapper" id="textarea2-wrapper">
+                    <div class="action-bar">
+                        <div class="dropdown-btn">
+                            <button class="action-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2v3"/>
+                                    <path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/>
+                                </svg>
+                                翻译
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="dropdown-menu lang-menu">
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇨🇳</span><span class="lang-name">简体中文</span></div>
+                                <div class="dropdown-item lang-item"><span class="lang-flag">🇬🇧</span><span class="lang-name">English</span></div>
+                            </div>
+                        </div>
+                        <div class="dropdown-btn">
+                            <button class="action-btn primary" id="textarea2-fill-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                </svg>
+                                填充
+                                <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="fillTextarea('textarea2', 'auto')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                    </svg>
+                                    一键填充
+                                </div>
+                                <div class="dropdown-item" onclick="showCustomPrompt('textarea2')">
+                                    <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    基于我的要求填充
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <textarea class="form-textarea" id="textarea2" placeholder="请输入工作经历" onfocus="activateInput('textarea2-wrapper')" onblur="deactivateInput('textarea2-wrapper')"></textarea>
+                </div>
+                
+                <!-- 自定义要求输入框 -->
+                <div id="custom-prompt-box" style="display: none; margin-top: 12px; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">请输入你的填充要求：</div>
+                    <input type="text" class="form-input" id="custom-prompt-input" placeholder="例如：突出我的项目管理经验" style="margin-bottom: 8px;">
+                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button class="action-btn" onclick="hideCustomPrompt()">取消</button>
+                        <button class="action-btn primary" onclick="executeCustomFill()">生成</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo 5: Submit 按钮旁的快捷操作 -->
+        <div class="demo-section">
+            <h2 class="demo-title">5. Submit 按钮旁的快捷操作</h2>
+            <p class="demo-desc">在提交按钮旁边放置 AI 学习和抓取按钮</p>
+
+            <div class="submit-area">
+                <button class="quick-learn-btn" onclick="alert('AI 正在学习表单内容...')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                    </svg>
+                    AI 学习表单
+                </button>
+                <button class="quick-learn-btn" onclick="alert('正在抓取本页内容到知识库...')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    抓取到知识库
+                </button>
+                <button class="submit-btn">提交表单</button>
+            </div>
+        </div>
+
+        <!-- Demo 6: 流式填充效果 -->
+        <div class="demo-section">
+            <h2 class="demo-title">6. 流式填充效果 (XML 格式返回)</h2>
+            <p class="demo-desc">AI 返回 XML 格式数据，逐个字段流式填充</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label">姓名</label>
+                    <input type="text" class="form-input" id="stream-input1" placeholder="等待填充...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">职业</label>
+                    <input type="text" class="form-input" id="stream-input2" placeholder="等待填充...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">公司</label>
+                    <input type="text" class="form-input" id="stream-input3" placeholder="等待填充...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">邮箱</label>
+                    <input type="text" class="form-input" id="stream-input4" placeholder="等待填充...">
+                </div>
+            </div>
+
+            <button class="action-btn primary" onclick="demoStreamFill()" style="margin-top: 12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                </svg>
+                演示流式填充
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 激活输入框
+        function activateInput(wrapperId) {
+            // 先清除其他激活状态
+            document.querySelectorAll('.input-wrapper.active').forEach(w => {
+                if (w.id !== wrapperId) {
+                    w.classList.remove('active');
+                }
+            });
+            
+            const wrapper = document.getElementById(wrapperId);
+            wrapper.classList.add('active');
+            
+            // 如果是有缓存的输入框，显示缓存按钮
+            const inputId = wrapperId.replace('-wrapper', '');
+            const input = document.getElementById(inputId);
+            const cacheBtn = document.getElementById(inputId + '-cache-btn');
+            
+            if (cacheBtn && input.classList.contains('has-cache')) {
+                cacheBtn.style.display = 'flex';
+            }
+        }
+
+        // 延迟取消激活（让用户有时间点击按钮）
+        function deactivateInput(wrapperId) {
+            setTimeout(() => {
+                const wrapper = document.getElementById(wrapperId);
+                // 检查鼠标是否在 wrapper 内
+                if (!wrapper.matches(':hover')) {
+                    wrapper.classList.remove('active');
+                }
+            }, 200);
+        }
+
+        // 填充输入框
+        function fillInput(inputId, mode) {
+            const input = document.getElementById(inputId);
+            const btn = document.querySelector(`#${inputId}-wrapper .action-btn.primary`);
+            
+            if (mode === 'custom') {
+                showCustomPrompt(inputId);
+                return;
+            }
+            
+            // 显示加载状态
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> 填充中...';
+            btn.classList.add('loading');
+            
+            // 模拟填充
+            setTimeout(() => {
+                const values = {
+                    'input1': '张三',
+                    'input2': 'zhangsan@example.com',
+                    'input3': '13800138000'
+                };
+                input.value = values[inputId] || '示例内容';
+                input.classList.add('filled');
+                
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('loading');
+                
+                setTimeout(() => input.classList.remove('filled'), 500);
+            }, 1000);
+        }
+
+        // 填充文本框
+        function fillTextarea(textareaId, mode) {
+            const textarea = document.getElementById(textareaId);
+            
+            if (mode === 'custom') {
+                showCustomPrompt(textareaId);
+                return;
+            }
+            
+            // 检查是否有内容，询问用户
+            if (textarea.value.trim() && mode === 'auto') {
+                if (!confirm('当前输入框已有内容，是否基于现有内容进行修改？\n\n点击"确定"基于现有内容修改\n点击"取消"完全替换')) {
+                    // 完全替换
+                }
+            }
+            
+            const btn = document.querySelector(`#${textareaId}-wrapper .action-btn.primary`);
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner"></span> 填充中...';
+            btn.classList.add('loading');
+            
+            setTimeout(() => {
+                textarea.value = '我是一名资深软件工程师，拥有 8 年的行业经验。专注于前端开发和系统架构设计，曾带领团队完成多个大型项目的交付。熟练掌握 React、Vue、Node.js 等技术栈，对性能优化和用户体验有深入理解。';
+                textarea.classList.add('filled');
+                
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('loading');
+                
+                setTimeout(() => textarea.classList.remove('filled'), 500);
+            }, 1500);
+        }
+
+        // 翻译功能
+        function translateTo(inputId, lang) {
+            const input = document.getElementById(inputId);
+            const langMap = {
+                'zh-CN': '简体中文',
+                'zh-TW': '繁體中文',
+                'en': 'English',
+                'ja': '日本語',
+                'ko': '한국어'
+            };
+            
+            if (!input.value.trim()) {
+                alert('请先输入内容再翻译');
+                return;
+            }
+            
+            // 模拟翻译
+            setTimeout(() => {
+                const translations = {
+                    'en': 'Zhang San',
+                    'ja': '張三',
+                    'ko': '장삼'
+                };
+                if (translations[lang]) {
+                    input.value = translations[lang];
+                }
+                input.classList.add('filled');
+                setTimeout(() => input.classList.remove('filled'), 500);
+            }, 500);
+        }
+
+        function confirmCache(inputId) {
+            const input = document.getElementById(inputId);
+            const cacheBtn = document.getElementById(inputId + '-cache-btn');
+            const cacheValues = {
+                'input1': '张三',
+                'input2': 'zhangsan@example.com',
+                'input3': '13800138000'
+            };
+            
+            input.value = cacheValues[inputId];
+            input.classList.add('filled');
+            input.classList.remove('has-cache');
+            input.placeholder = '';
+            
+            if (cacheBtn) {
+                cacheBtn.style.display = 'none';
+            }
+            
+            setTimeout(() => input.classList.remove('filled'), 500);
+        }
+
+        // 显示自定义要求输入框
+        let currentCustomTarget = null;
+        function showCustomPrompt(targetId) {
+            currentCustomTarget = targetId;
+            document.getElementById('custom-prompt-box').style.display = 'block';
+            document.getElementById('custom-prompt-input').focus();
+        }
+
+        function hideCustomPrompt() {
+            document.getElementById('custom-prompt-box').style.display = 'none';
+            document.getElementById('custom-prompt-input').value = '';
+            currentCustomTarget = null;
+        }
+
+        function executeCustomFill() {
+            const prompt = document.getElementById('custom-prompt-input').value;
+            if (!prompt.trim()) {
+                alert('请输入填充要求');
+                return;
+            }
+            
+            const target = document.getElementById(currentCustomTarget);
+            if (target) {
+                target.value = `[根据要求"${prompt}"生成的内容]\n\n这是一段根据用户要求生成的示例内容，突出了项目管理经验和团队协作能力。`;
+                target.classList.add('filled');
+                setTimeout(() => target.classList.remove('filled'), 500);
+            }
+            
+            hideCustomPrompt();
+        }
+
+        // 流式填充演示
+        function demoStreamFill() {
+            const fields = [
+                { id: 'stream-input1', value: '张三', delay: 300 },
+                { id: 'stream-input2', value: '高级软件工程师', delay: 600 },
+                { id: 'stream-input3', value: '字节跳动', delay: 900 },
+                { id: 'stream-input4', value: 'zhangsan@bytedance.com', delay: 1200 }
+            ];
+            
+            // 清空所有字段
+            fields.forEach(f => {
+                document.getElementById(f.id).value = '';
+                document.getElementById(f.id).placeholder = '等待填充...';
+            });
+            
+            // 逐个填充
+            fields.forEach(field => {
+                setTimeout(() => {
+                    const input = document.getElementById(field.id);
+                    input.placeholder = '正在填充...';
+                    
+                    // 逐字填充效果
+                    let i = 0;
+                    const typeInterval = setInterval(() => {
+                        input.value = field.value.substring(0, i + 1);
+                        i++;
+                        if (i >= field.value.length) {
+                            clearInterval(typeInterval);
+                            input.classList.add('filled');
+                            input.placeholder = '';
+                            setTimeout(() => input.classList.remove('filled'), 300);
+                        }
+                    }, 50);
+                }, field.delay);
+            });
+        }
+
+        // 主题切换
+        function setTheme(theme, btn) {
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (theme === 'light') {
+                document.documentElement.style.colorScheme = 'light';
+            } else if (theme === 'dark') {
+                document.documentElement.style.colorScheme = 'dark';
+            } else {
+                document.documentElement.style.colorScheme = '';
+            }
+        }
+
+        // 点击外部关闭下拉
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.input-wrapper')) {
+                document.querySelectorAll('.input-wrapper.active').forEach(w => {
+                    // 保持演示的 input3-wrapper 激活
+                    if (w.id !== 'input3-wrapper') {
+                        // w.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

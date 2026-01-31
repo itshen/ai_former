@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const userPromptTextarea = document.getElementById('user-prompt');
     const loadingIndicator = document.getElementById('loading-indicator');
     
+    // Reasoning 开关相关元素
+    const reasoningToggleContainer = document.getElementById('reasoning-toggle-container');
+    const reasoningEnabledCheckbox = document.getElementById('reasoning-enabled');
+    
     // 反馈按钮和模态框相关元素
     const feedbackLink = document.getElementById('feedback-link');
     const feedbackModal = document.getElementById('feedback-modal');
@@ -265,13 +269,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // 缓存每个供应商的配置
     let providerConfigs = {
         ollama: { url: 'http://localhost:11434', model: '' },
-        openai: { apiKey: '', model: '' },
-        qianwen: { apiKey: '', model: '' },
+        lmstudio: { url: 'http://localhost:1234', model: '' },
+        bailian: { apiKey: '', model: '' },
         zhipu: { apiKey: '', model: '' },
-        minimax: { apiKey: '', model: '' },
+        kimi: { apiKey: '', model: '' },
         deepseek: { apiKey: '', model: '' },
+        volcengine: { apiKey: '', model: '' },
         siliconflow: { apiKey: '', model: '' },
-        volcengine: { apiKey: '', model: '' }
+        openrouter: { apiKey: '', model: '' },
+        mimo: { apiKey: '', model: '' }
     };
 
     // 模型配置
@@ -280,48 +286,57 @@ document.addEventListener('DOMContentLoaded', function() {
             label: "Ollama 地址",
             models: [] // 将动态获取
         },
-        openai: {
-            label: "OpenAI API Key",
+        lmstudio: {
+            label: "LM Studio 地址",
             models: [] // 将动态获取
         },
-        qianwen: {
-            label: "通义千问 API Key",
+        bailian: {
+            label: "阿里云百炼 API Key",
             models: [] // 将动态获取
         },
         zhipu: {
             label: "智谱 API Key",
             models: [] // 将动态获取
         },
-        minimax: {
-            label: "MiniMax API Key",
+        kimi: {
+            label: "Kimi API Key",
             models: [] // 将动态获取
         },
         deepseek: {
             label: "DeepSeek API Key",
             models: [] // 将动态获取
         },
+        volcengine: {
+            label: "火山引擎 API Key",
+            models: [] // 将动态获取
+        },
         siliconflow: {
             label: "硅基流动 API Key",
             models: [] // 将动态获取
         },
-        volcengine: {
-            label: "火山引擎 API Key",
+        openrouter: {
+            label: "OpenRouter API Key",
+            models: [] // 将动态获取
+        },
+        mimo: {
+            label: "小米 Mimo API Key",
             models: [] // 将动态获取
         }
     };
 
     // 默认模型列表，作为备选
     const defaultModels = {
-        openai: [
-            { value: "gpt-4o", label: "GPT-4o" },
-            { value: "gpt-4-turbo", label: "GPT-4 Turbo" },
-            { value: "gpt-4", label: "GPT-4" },
-            { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo" }
+        lmstudio: [
+            { value: "local-model", label: "本地模型" }
         ],
-        qianwen: [
-            { value: "qwen-turbo", label: "千问-Turbo" },
-            { value: "qwen-plus", label: "千问-Plus" },
-            { value: "qwen-max", label: "千问-Max" }
+        bailian: [
+            { value: "qwen-long", label: "qwen-long" },
+            { value: "qwen-plus", label: "qwen-plus" },
+            { value: "qwen-turbo", label: "qwen-turbo" },
+            { value: "qwen-max", label: "qwen-max" },
+            { value: "qwen-coder-plus", label: "qwen-coder-plus" },
+            { value: "qwen2.5-72b-instruct", label: "qwen2.5-72b-instruct" },
+            { value: "qwen2.5-32b-instruct", label: "qwen2.5-32b-instruct" }
         ],
         zhipu: [
             { value: "GLM-4-Plus", label: "GLM-4-Plus" },
@@ -331,26 +346,48 @@ document.addEventListener('DOMContentLoaded', function() {
             { value: "GLM-4-Air", label: "GLM-4-Air" },
             { value: "GLM-4-FlashX", label: "GLM-4-FlashX" }
         ],
-        minimax: [
-            { value: "abab7-chat-preview", label: "abab7-chat-preview" },
-            { value: "abab6.5s-chat", label: "abab6.5s-chat" }
+        kimi: [
+            { value: "moonshot-v1-8k", label: "moonshot-v1-8k" },
+            { value: "moonshot-v1-32k", label: "moonshot-v1-32k" },
+            { value: "moonshot-v1-128k", label: "moonshot-v1-128k" }
         ],
         deepseek: [
             { value: "deepseek-chat", label: "deepseek-chat" },
             { value: "deepseek-coder", label: "deepseek-coder" }
+        ],
+        volcengine: [
+            { value: "doubao-1-5-pro-32k", label: "doubao-1.5-pro-32k" },
+            { value: "doubao-1-5-pro-256k", label: "doubao-1.5-pro-256k" },
+            { value: "doubao-1-5-lite-32k", label: "doubao-1.5-lite-32k" },
+            { value: "doubao-pro-32k", label: "doubao-pro-32k" },
+            { value: "doubao-lite-32k", label: "doubao-lite-32k" }
         ],
         siliconflow: [
             { value: "Pro/deepseek-ai/DeepSeek-R1", label: "DeepSeek-R1" },
             { value: "Pro/deepseek-ai/DeepSeek-V3", label: "DeepSeek-V3" },
             { value: "Qwen/Qwen2.5-7B-Instruct", label: "Qwen2.5-7B-Instruct" }
         ],
-        volcengine: [
-            { value: "deepseek-r1-250120", label: "deepseek-r1-250120" },
-            { value: "deepseek-v3-241226", label: "deepseek-v3-241226" },
-            { value: "doubao-1.5-pro-32k-250115", label: "doubao-1.5-pro-32k" },
-            { value: "moonshot-v1-8k", label: "moonshot-v1-8k" },
-            { value: "moonshot-v1-32k", label: "moonshot-v1-32k" }
+        openrouter: [
+            { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash" },
+            { value: "moonshotai/kimi-k2.5", label: "Kimi K2.5" },
+            { value: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4" },
+            { value: "openai/gpt-4o", label: "GPT-4o" }
+        ],
+        mimo: [
+            { value: "mimo-v2-flash", label: "mimo-v2-flash" }
         ]
+    };
+    
+    // 推荐模型配置：首次加载时优先选择这些模型
+    const recommendedModels = {
+        bailian: 'qwen-plus',
+        zhipu: 'glm-4.7',
+        kimi: 'kimi-k2.5',
+        deepseek: 'deepseek-chat',
+        volcengine: 'doubao-seed-1-8-251228',
+        siliconflow: 'MiniMax-M2.1',
+        openrouter: 'google/gemini-3-flash-preview',
+        mimo: 'mimo-v2-flash'
     };
 
     // 通用错误处理函数，处理"Receiving end does not exist"错误
@@ -418,9 +455,13 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.modelConfig) {
                 const config = data.modelConfig;
                 
-                // 恢复所有供应商的缓存配置
+                // 恢复所有供应商的缓存配置（合并而不是替换，确保新增的提供商不丢失）
                 if (config.providerConfigs) {
-                    providerConfigs = config.providerConfigs;
+                    for (const key in config.providerConfigs) {
+                        if (providerConfigs[key]) {
+                            providerConfigs[key] = { ...providerConfigs[key], ...config.providerConfigs[key] };
+                        }
+                    }
                 }
                 
                 // 设置模型提供商
@@ -482,6 +523,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // 更新模型选择
         updateModelSelection(provider);
         
+        // 如果不是 OpenRouter，隐藏 Reasoning 开关
+        if (provider !== 'openrouter') {
+            reasoningToggleContainer.classList.add('hidden');
+            reasoningEnabledCheckbox.checked = false;
+        }
+        
         // 记录当前供应商，用于下次切换时保存
         this.dataset.previousProvider = provider;
         
@@ -492,9 +539,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // 保存指定供应商的配置到缓存
     function saveProviderConfig(provider) {
         if (provider === 'ollama') {
+            if (!providerConfigs.ollama) providerConfigs.ollama = { url: '', model: '' };
             providerConfigs.ollama.url = ollamaUrlInput.value;
             providerConfigs.ollama.model = modelSelectionSelect.value;
+        } else if (provider === 'lmstudio') {
+            if (!providerConfigs.lmstudio) providerConfigs.lmstudio = { url: '', model: '' };
+            providerConfigs.lmstudio.url = ollamaUrlInput.value;
+            providerConfigs.lmstudio.model = modelSelectionSelect.value;
         } else {
+            if (!providerConfigs[provider]) providerConfigs[provider] = { apiKey: '', model: '' };
             providerConfigs[provider].apiKey = apiKeyInput.value;
             providerConfigs[provider].model = modelSelectionSelect.value;
         }
@@ -509,10 +562,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // 从缓存加载供应商配置
     function loadProviderConfig(provider) {
         if (provider === 'ollama') {
-            ollamaUrlInput.value = providerConfigs.ollama.url || 'http://127.0.0.1:11434';
+            ollamaUrlInput.value = providerConfigs.ollama?.url || 'http://127.0.0.1:11434';
+            // 清空 API Key 输入框，避免混淆
+            apiKeyInput.value = '';
+        } else if (provider === 'lmstudio') {
+            ollamaUrlInput.value = providerConfigs.lmstudio?.url || 'http://localhost:1234';
             // 清空 API Key 输入框，避免混淆
             apiKeyInput.value = '';
         } else {
+            // 确保 providerConfigs[provider] 存在
+            if (!providerConfigs[provider]) {
+                providerConfigs[provider] = { apiKey: '', model: '' };
+            }
             // 从缓存中获取当前厂商的 API Key，如果没有则清空
             apiKeyInput.value = providerConfigs[provider].apiKey || '';
             // 清空 Ollama URL 输入框，避免混淆                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
@@ -525,10 +586,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // 更新当前供应商的缓存
         const provider = modelProviderSelect.value;
         if (provider === 'ollama') {
+            if (!providerConfigs.ollama) providerConfigs.ollama = { url: '', model: '' };
             providerConfigs.ollama.model = this.value;
         } else {
+            if (!providerConfigs[provider]) providerConfigs[provider] = { apiKey: '', model: '' };
             providerConfigs[provider].model = this.value;
         }
+        
+        // 更新 Reasoning 开关
+        const selectedModel = findModelByValue(this.value);
+        updateReasoningToggle(selectedModel);
         
         saveConfig();
     });
@@ -537,6 +604,8 @@ document.addEventListener('DOMContentLoaded', function() {
     apiKeyInput.addEventListener('change', function() {
         const provider = modelProviderSelect.value;
         if (provider !== 'ollama') {
+            // 确保 providerConfigs[provider] 存在
+            if (!providerConfigs[provider]) providerConfigs[provider] = { apiKey: '', model: '' };
             // 更新当前供应商的缓存
             providerConfigs[provider].apiKey = this.value;
             
@@ -550,6 +619,8 @@ document.addEventListener('DOMContentLoaded', function() {
     apiKeyInput.addEventListener('blur', function() {
         const provider = modelProviderSelect.value;
         if (provider !== 'ollama' && this.value.trim()) {
+            // 确保 providerConfigs[provider] 存在
+            if (!providerConfigs[provider]) providerConfigs[provider] = { apiKey: '', model: '' };
             // 更新当前供应商的缓存
             providerConfigs[provider].apiKey = this.value;
             
@@ -561,6 +632,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ollama URL变更事件
     ollamaUrlInput.addEventListener('change', function() {
         // 更新Ollama的缓存
+        if (!providerConfigs.ollama) providerConfigs.ollama = { url: '', model: '' };
         providerConfigs.ollama.url = this.value;
         
         fetchOllamaModels();
@@ -582,15 +654,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateApiKeyConfig(provider) {
         // 定义帮助链接
         const helpLinks = {
-            'openai': 'https://platform.openai.com/api-keys',
-            'ernie': 'https://console.bce.baidu.com/qianfan/overview',
-            'dashscope': 'https://bailian.console.aliyun.com/?apiKey=1',
-            'zhipu': 'https://open.bigmodel.cn/usercenter/apikeys',
-            'minimax': 'https://platform.minimaxi.com/user-center/basic-information/interface-key',
             'ollama': 'https://ollama.com',
+            'lmstudio': 'https://lmstudio.ai/',
+            'bailian': 'https://bailian.console.aliyun.com/?apiKey=1',
+            'zhipu': 'https://open.bigmodel.cn/usercenter/apikeys',
+            'kimi': 'https://platform.moonshot.cn/console/api-keys',
             'deepseek': 'https://platform.deepseek.com/',
+            'volcengine': 'https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey',
             'siliconflow': 'https://cloud.siliconflow.cn/i/gQhQNfpv',
-            'volcengine': 'https://volcengine.com/L/i594ULBE/'
+            'openrouter': 'https://openrouter.ai/keys',
+            'mimo': 'https://xiaomimimo.com/'
         };
 
         const ollamaSection = document.getElementById('ollamaSection');
@@ -599,6 +672,18 @@ document.addEventListener('DOMContentLoaded', function() {
             apiContainer.classList.add('hidden');
             ollamaContainer.classList.remove('hidden');
             ollamaSection.classList.remove('hidden'); // 显示 Ollama 配置指南
+            // 更新 Ollama 地址输入框的 placeholder
+            ollamaUrlInput.placeholder = 'http://localhost:11434';
+        } else if (provider === 'lmstudio') {
+            apiContainer.classList.add('hidden');
+            ollamaContainer.classList.remove('hidden');
+            ollamaSection.classList.add('hidden'); // LM Studio 不需要配置指南
+            // 更新 LM Studio 地址输入框的 placeholder
+            ollamaUrlInput.placeholder = 'http://localhost:1234';
+            // 设置默认地址
+            if (!ollamaUrlInput.value || ollamaUrlInput.value === 'http://localhost:11434') {
+                ollamaUrlInput.value = 'http://localhost:1234';
+            }
         } else {
             apiContainer.classList.remove('hidden');
             ollamaContainer.classList.add('hidden');
@@ -606,10 +691,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 创建标签文本和帮助链接
             const labelText = modelConfigs[provider].label;
-            // 对于通义千问，使用ernie的链接
-            const helpLink = (provider === 'qianwen') ? helpLinks['ernie'] : 
-                             (provider === 'dashscope') ? helpLinks['dashscope'] : 
-                             helpLinks[provider] || '#';
+            const helpLink = helpLinks[provider] || '#';
             
             // 设置标签内容，包含超链接
             apiKeyLabel.innerHTML = `${labelText} <a href="${helpLink}" target="_blank" title="获取 ${labelText}" class="api-key-link">获取 Key</a>`;
@@ -625,54 +707,86 @@ document.addEventListener('DOMContentLoaded', function() {
         modelInput.value = '';
         
         if (provider === 'ollama') {
-            const option = document.createElement('option');
-            option.value = 'loading';
-            option.textContent = '正在加载...';
-            modelSelectionSelect.appendChild(option);
-            
-            // 更新输入框
-            modelInput.placeholder = '正在加载...';
-            
-            // 尝试获取Ollama模型列表
-            setTimeout(fetchOllamaModels, 100);
+            // 检查是否有缓存的模型列表
+            if (modelConfigs.ollama && modelConfigs.ollama.models && modelConfigs.ollama.models.length > 0) {
+                populateModelSelection(modelConfigs.ollama.models);
+                restoreSavedModel('ollama');
+            } else {
+                // 没有缓存，尝试获取
+                const option = document.createElement('option');
+                option.value = 'loading';
+                option.textContent = '正在加载...';
+                modelSelectionSelect.appendChild(option);
+                modelInput.placeholder = '正在加载...';
+                setTimeout(fetchOllamaModels, 100);
+            }
+        } else if (provider === 'lmstudio') {
+            // 检查是否有缓存的模型列表
+            if (modelConfigs.lmstudio && modelConfigs.lmstudio.models && modelConfigs.lmstudio.models.length > 0) {
+                populateModelSelection(modelConfigs.lmstudio.models);
+                restoreSavedModel('lmstudio');
+            } else {
+                // 没有缓存，尝试获取
+                const option = document.createElement('option');
+                option.value = 'loading';
+                option.textContent = '正在加载...';
+                modelSelectionSelect.appendChild(option);
+                modelInput.placeholder = '正在加载...';
+                setTimeout(fetchLMStudioModels, 100);
+            }
         } else {
             // 检查是否有缓存的模型列表
             if (modelConfigs[provider].models.length > 0) {
                 // 使用缓存的模型列表
                 populateModelSelection(modelConfigs[provider].models);
                 
-                // 如果有保存的配置，尝试选择之前选择的模型
-                if (providerConfigs[provider].model) {
-                    setTimeout(() => {
-                        if (modelSelectionSelect.querySelector(`option[value="${providerConfigs[provider].model}"]`)) {
-                            modelSelectionSelect.value = providerConfigs[provider].model;
-                            
-                            // 更新输入框
-                            const selectedOption = modelSelectionSelect.querySelector(`option[value="${providerConfigs[provider].model}"]`);
-                            if (selectedOption) {
-                                modelInput.value = selectedOption.textContent;
-                            }
-                        }
-                    }, 100);
-                }
+                // 恢复之前选择的模型
+                restoreSavedModel(provider);
             } else {
-                // 使用默认模型列表
-                populateModelSelection(defaultModels[provider] || []);
-                
-                // 如果有API Key，立即尝试获取模型列表
+                // 没有缓存的模型列表
                 const apiKey = apiKeyInput.value.trim();
                 if (apiKey) {
+                    // 有 API Key，尝试获取模型列表
+                    modelInput.placeholder = '正在加载...';
+                    modelSelectionSelect.innerHTML = '';
+                    const option = document.createElement('option');
+                    option.value = 'loading';
+                    option.textContent = '正在加载...';
+                    modelSelectionSelect.appendChild(option);
+                    
                     setTimeout(() => fetchModels(provider, apiKey), 100);
                 } else {
-                    // 显示提示，需要输入API Key获取更多模型
-                    modelInput.placeholder = '请输入API Key获取更多模型';
-                    
+                    // 没有 API Key，显示提示
+                    modelInput.placeholder = '请输入 API Key';
+                    modelInput.value = '';
+                    modelSelectionSelect.innerHTML = '';
                     const option = document.createElement('option');
                     option.value = '';
-                    option.textContent = '请输入API Key获取更多模型';
+                    option.textContent = '请输入 API Key';
                     modelSelectionSelect.appendChild(option);
+                    currentModels = [];
+                    renderModelList([]);
                 }
             }
+        }
+    }
+    
+    // 恢复之前选择的模型
+    function restoreSavedModel(provider) {
+        // 安全检查：确保 providerConfigs[provider] 存在
+        if (!providerConfigs[provider]) {
+            console.warn(`providerConfigs[${provider}] 不存在`);
+            return;
+        }
+        const savedModel = providerConfigs[provider].model;
+        if (savedModel) {
+            setTimeout(() => {
+                const option = modelSelectionSelect.querySelector(`option[value="${savedModel}"]`);
+                if (option) {
+                    modelSelectionSelect.value = savedModel;
+                    modelInput.value = option.textContent;
+                }
+            }, 50);
         }
     }
 
@@ -705,31 +819,31 @@ document.addEventListener('DOMContentLoaded', function() {
             // 获取当前提供商
             const provider = modelProviderSelect.value;
             
-            // 根据提供商设置建议值
-            let suggestedModel = null;
-            switch (provider) {
-                case 'openai':
-                    suggestedModel = models.find(m => m.value === 'gpt-4o-mini');
-                    break;
-                case 'qianwen':
-                    suggestedModel = models.find(m => m.value === 'qwen-long');
-                    break;
-                case 'zhipu':
-                    suggestedModel = models.find(m => m.value === 'GLM-4-Long');
-                    break;
-                case 'deepseek':
-                    suggestedModel = models.find(m => m.value === 'deepseek-chat');
-                    break;
-                case 'siliconflow':
-                    suggestedModel = models.find(m => m.value === 'Qwen2.5-32B-Instruct');
-                    break;
-                case 'volcengine':
-                    suggestedModel = models.find(m => m.value === 'moonshot-v1-32k');
-                    break;
+            // 优先使用缓存的选择（加安全检查）
+            const savedModel = providerConfigs[provider]?.model;
+            let modelToSelect = null;
+            
+            if (savedModel) {
+                // 尝试找到之前保存的模型
+                modelToSelect = models.find(m => m.value === savedModel);
             }
             
-            // 如果找到建议值，使用它；否则使用第一个模型
-            const modelToSelect = suggestedModel || models[0];
+            // 如果没有缓存的选择，尝试使用推荐模型
+            if (!modelToSelect && recommendedModels[provider]) {
+                const recommended = recommendedModels[provider];
+                // 支持部分匹配（忽略大小写）
+                modelToSelect = models.find(m => 
+                    m.value.toLowerCase() === recommended.toLowerCase() ||
+                    m.value.toLowerCase().includes(recommended.toLowerCase()) ||
+                    m.label.toLowerCase().includes(recommended.toLowerCase())
+                );
+            }
+            
+            // 如果仍然没有找到，使用第一个
+            if (!modelToSelect) {
+                modelToSelect = models[0];
+            }
+            
             modelSelectionSelect.value = modelToSelect.value;
             modelInput.value = modelToSelect.label;
         }
@@ -758,62 +872,55 @@ document.addEventListener('DOMContentLoaded', function() {
                 let models = [];
                 
                 switch (provider) {
-                    case 'openai':
-                        models = await fetchOpenAIModels(apiKey);
-                        break;
-                    case 'qianwen':
-                        models = await fetchQianwenModels(apiKey);
+                    case 'bailian':
+                        models = await fetchBailianModels(apiKey);
                         break;
                     case 'zhipu':
                         models = await fetchZhipuModels(apiKey);
                         break;
-                    case 'minimax':
-                        models = await fetchMinimaxModels(apiKey);
+                    case 'kimi':
+                        models = await fetchKimiModels(apiKey);
                         break;
                     case 'deepseek':
                         models = await fetchDeepSeekModels(apiKey);
                         break;
+                    case 'volcengine':
+                        models = await fetchVolcengineModels(apiKey);
+                        break;
                     case 'siliconflow':
                         models = await fetchSiliconFlowModels(apiKey);
                         break;
-                    case 'volcengine':
-                        models = await fetchVolcengineModels(apiKey);
+                    case 'openrouter':
+                        models = await fetchOpenRouterModels(apiKey);
+                        break;
+                    case 'mimo':
+                        models = await fetchMimoModels(apiKey);
                         break;
                     default:
                         // 使用默认模型列表
                         models = defaultModels[provider] || [];
                 }
                 
-                // 更新模型配置
+                // 更新模型配置缓存
                 modelConfigs[provider].models = models;
                 
                 // 更新模型选择下拉框
                 populateModelSelection(models);
                 
-                // 如果有保存的配置，尝试选择之前选择的模型
-                chrome.storage.sync.get('modelConfig', function(data) {
-                    if (data.modelConfig && data.modelConfig.type === provider && data.modelConfig.model) {
-                        // 检查是否存在该模型选项
-                        if (modelSelectionSelect.querySelector(`option[value="${data.modelConfig.model}"]`)) {
-                            modelSelectionSelect.value = data.modelConfig.model;
-                        }
-                    }
-                });
+                // 恢复之前选择的模型
+                restoreSavedModel(provider);
                 
-                showToastInPage(`成功获取到 ${models.length} 个${modelConfigs[provider].label.split(' ')[0]}模型`, 'info');
-                setButtonsState(false); // 启用按钮
+                if (models.length > 0) {
+                    showToastInPage(`成功获取到 ${models.length} 个模型`, 'success');
+                } else {
+                    showToastInPage(`未获取到模型，请检查 API Key`, 'warning');
+                }
+                setButtonsState(false);
                 return models;
                 
             } catch (error) {
                 attempt++;
                 console.error(`获取${provider}模型列表失败 (尝试 ${attempt}/${retryCount}):`, error);
-                
-                // 检查是否是连接错误
-                if (error.message && error.message.includes("Receiving end does not exist")) {
-                    showToastInPage(`连接错误: 无法与页面通信，可能需要刷新页面`, 'error');
-                    setButtonsState(false); // 启用按钮
-                    return defaultModels[provider] || [];
-                }
                 
                 if (attempt < retryCount) {
                     // 指数退避重试
@@ -821,56 +928,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     showToastInPage(`获取模型列表失败，${delay/1000}秒后重试...`, 'warning');
                     await new Promise(resolve => setTimeout(resolve, delay));
                 } else {
-                    // 最后一次尝试失败，使用默认模型列表
-                    modelConfigs[provider].models = defaultModels[provider] || [];
-                    populateModelSelection(modelConfigs[provider].models);
-                    showToastInPage(`获取模型列表失败: ${error.message}，使用默认列表`, 'error');
-                    setButtonsState(false); // 启用按钮
+                    // 最后一次尝试失败，显示空列表（不用兜底）
+                    modelConfigs[provider].models = [];
+                    populateModelSelection([]);
+                    showToastInPage(`获取模型列表失败: ${error.message}`, 'error');
+                    setButtonsState(false);
                 }
             }
         }
         
-        return defaultModels[provider] || [];
+        return [];
     }
 
-    // 获取OpenAI模型列表
-    async function fetchOpenAIModels(apiKey) {
-        try {
-            const response = await fetch('https://api.openai.com/v1/models', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`API请求失败: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            // 过滤出聊天模型
-            const chatModels = data.data
-                .filter(model => model.id.includes('gpt'))
-                .map(model => ({
-                    value: model.id,
-                    label: model.id
-                }));
-            
-            return chatModels.length > 0 ? chatModels : defaultModels.openai;
-        } catch (error) {
-            console.error('获取OpenAI模型列表失败:', error);
-            return defaultModels.openai;
-        }
-    }
-
-    // 获取通义千问模型列表
-    async function fetchQianwenModels(apiKey) {
+    // 获取阿里云百炼模型列表
+    async function fetchBailianModels(apiKey) {
         try {
             const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/models', {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${apiKey}`
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
                 }
             });
             
@@ -879,19 +956,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const data = await response.json();
+            let models = [];
             
-            // 转换为所需格式
-            const models = data.data
-                .filter(model => model.id.includes('qwen'))
-                .map(model => ({
-                    value: model.id,
-                    label: model.id
+            // 解析模型列表 - 兼容多种响应格式
+            if (data.output && data.output.models) {
+                // 新格式: output.models
+                models = data.output.models.map(model => ({
+                    value: model.model_name || model.id,
+                    label: model.model_name || model.id
                 }));
+            } else if (data.data && Array.isArray(data.data)) {
+                // 兼容旧格式: data 数组
+                models = data.data
+                    .filter(model => model.id && (model.id.includes('qwen') || model.id.includes('deepseek')))
+                    .map(model => ({
+                        value: model.id,
+                        label: model.name || model.id
+                    }));
+            }
             
-            return models.length > 0 ? models : defaultModels.qianwen;
+            return models;
         } catch (error) {
-            console.error('获取通义千问模型列表失败:', error);
-            return defaultModels.qianwen;
+            console.error('获取阿里云百炼模型列表失败:', error);
+            throw error; // 抛出错误让上层处理
         }
     }
 
@@ -911,25 +998,25 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             
-            // 转换为所需格式
+            // 转换为所需格式（忽略大小写匹配 glm）
             const models = data.data
-                .filter(model => model.id.includes('GLM'))
+                .filter(model => model.id.toLowerCase().includes('glm'))
                 .map(model => ({
                     value: model.id,
                     label: model.id
                 }));
             
-            return models.length > 0 ? models : defaultModels.zhipu;
+            return models;
         } catch (error) {
             console.error('获取智谱模型列表失败:', error);
-            return defaultModels.zhipu;
+            throw error;
         }
     }
 
-    // 获取Minimax模型列表
-    async function fetchMinimaxModels(apiKey) {
+    // 获取Kimi模型列表
+    async function fetchKimiModels(apiKey) {
         try {
-            const response = await fetch('https://api.minimax.chat/v1/models', {
+            const response = await fetch('https://api.moonshot.cn/v1/models', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`
@@ -943,17 +1030,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             // 转换为所需格式
-            const models = data.data
-                .filter(model => model.id.includes('chat'))
-                .map(model => ({
-                    value: model.id,
-                    label: model.id
-                }));
+            const models = data.data.map(model => ({
+                value: model.id,
+                label: model.id
+            }));
             
-            return models.length > 0 ? models : defaultModels.minimax;
+            return models;
         } catch (error) {
-            console.error('获取Minimax模型列表失败:', error);
-            return defaultModels.minimax;
+            console.error('获取Kimi模型列表失败:', error);
+            throw error;
         }
     }
 
@@ -979,10 +1064,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 label: model.id
             }));
             
-            return models.length > 0 ? models : defaultModels.deepseek;
+            return models;
         } catch (error) {
             console.error('获取DeepSeek模型列表失败:', error);
-            return defaultModels.deepseek;
+            throw error;
         }
     }
 
@@ -1005,13 +1090,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // 转换为所需格式
             const models = data.data.map(model => ({
                 value: model.id,
-                label: model.id.split('/').pop() || model.id // 提取模型名称作为标签
+                label: model.id.split('/').pop() || model.id
             }));
             
-            return models.length > 0 ? models : defaultModels.siliconflow;
+            return models;
         } catch (error) {
             console.error('获取硅基流动模型列表失败:', error);
-            return defaultModels.siliconflow;
+            throw error;
         }
     }
 
@@ -1019,6 +1104,39 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchVolcengineModels(apiKey) {
         try {
             const response = await fetch('https://ark.cn-beijing.volces.com/api/v3/models', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API请求失败: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // 转换为所需格式
+            if (data.data && Array.isArray(data.data)) {
+                const models = data.data.map(model => ({
+                    value: model.id,
+                    label: model.id
+                }));
+                return models;
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('获取火山引擎模型列表失败:', error);
+            throw error;
+        }
+    }
+
+    // 获取OpenRouter模型列表
+    async function fetchOpenRouterModels(apiKey) {
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/models', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${apiKey}`
@@ -1031,16 +1149,126 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             
-            // 转换为所需格式
-            const models = data.data.map(model => ({
+            // 转换为所需格式，保存 supported_parameters 用于判断是否支持 reasoning
+            const models = data.data.slice(0, 100).map(model => ({
                 value: model.id,
-                label: model.id
+                label: model.name || model.id,
+                supportedParameters: model.supported_parameters || [],
+                contextLength: model.context_length,
+                description: model.description
             }));
             
-            return models.length > 0 ? models : defaultModels.volcengine;
+            return models;
         } catch (error) {
-            console.error('获取火山引擎模型列表失败:', error);
-            return defaultModels.volcengine;
+            console.error('获取OpenRouter模型列表失败:', error);
+            throw error;
+        }
+    }
+
+    // 获取小米Mimo模型列表
+    async function fetchMimoModels(apiKey) {
+        // 小米Mimo API 不支持获取模型列表，返回空让用户手动输入
+        // 默认模型是 mimo-v2-flash
+        return [{ value: "mimo-v2-flash", label: "mimo-v2-flash" }];
+    }
+
+    // 获取LM Studio模型列表
+    async function fetchLMStudioModels(retryCount = 3) {
+        const lmstudioUrl = ollamaUrlInput.value.trim() || 'http://localhost:1234';
+        if (!lmstudioUrl) return;
+
+        // 显示加载状态
+        showToastInPage('正在获取LM Studio模型列表...', 'info');
+        setButtonsState(true);
+        
+        let attempt = 0;
+        
+        while (attempt < retryCount) {
+            try {
+                const response = await fetch(`${lmstudioUrl}/v1/models`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    mode: 'cors'
+                }).catch(error => {
+                    console.error('Fetch错误:', error);
+                    throw new Error(`无法连接到LM Studio服务: ${error.message}`);
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`获取模型列表失败: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json().catch(error => {
+                    console.error('解析JSON错误:', error);
+                    throw new Error('解析LM Studio响应失败');
+                });
+                
+                if (!data.data || !Array.isArray(data.data)) {
+                    throw new Error('LM Studio返回了意外的响应格式');
+                }
+                
+                // 清空当前选项
+                modelSelectionSelect.innerHTML = '';
+                
+                // 添加模型选项
+                if (data.data.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = '未找到模型';
+                    modelSelectionSelect.appendChild(option);
+                    
+                    showToastInPage('未找到LM Studio模型，请先加载模型', 'warning');
+                } else {
+                    // 转换模型数据格式并更新 currentModels
+                    currentModels = data.data.map(model => ({
+                        value: model.id,
+                        label: model.id
+                    }));
+                    
+                    data.data.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.id;
+                        modelSelectionSelect.appendChild(option);
+                    });
+                    
+                    // 缓存模型列表
+                    modelConfigs.lmstudio = modelConfigs.lmstudio || {};
+                    modelConfigs.lmstudio.models = currentModels;
+                    
+                    // 渲染下拉列表
+                    renderModelList(currentModels);
+                    
+                    // 恢复之前选择的模型
+                    restoreSavedModel('lmstudio');
+                    
+                    showToastInPage(`成功获取到 ${data.data.length} 个LM Studio模型`, 'success');
+                }
+                
+                setButtonsState(false);
+                return;
+                
+            } catch (error) {
+                attempt++;
+                console.error(`获取LM Studio模型列表失败 (尝试 ${attempt}/${retryCount}):`, error);
+                
+                if (attempt < retryCount) {
+                    const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+                    showToastInPage(`获取LM Studio模型列表失败，${delay/1000}秒后重试...`, 'warning');
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                    modelSelectionSelect.innerHTML = '';
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = '获取模型失败';
+                    modelSelectionSelect.appendChild(option);
+                    
+                    showToastInPage('获取LM Studio模型列表失败: ' + error.message, 'error');
+                    setButtonsState(false);
+                }
+            }
         }
     }
 
@@ -1512,6 +1740,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 model: modelSelectionSelect.value,
                 providerConfigs: providerConfigs  // 保存所有供应商的配置
             };
+        } else if (provider === 'lmstudio') {
+            return {
+                type: 'lmstudio',
+                url: ollamaUrlInput.value,
+                model: modelSelectionSelect.value,
+                providerConfigs: providerConfigs  // 保存所有供应商的配置
+            };
         } else {
             return {
                 type: provider,
@@ -1535,20 +1770,24 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             if (config.type === 'ollama') {
                 return await callOllamaAPI(config, userPrompt, formElements);
-            } else if (config.type === 'openai') {
-                return await callOpenAIAPI(config, userPrompt, formElements);
-            } else if (config.type === 'qianwen') {
-                return await callQianwenAPI(config, userPrompt, formElements);
+            } else if (config.type === 'lmstudio') {
+                return await callLMStudioAPI(config, userPrompt, formElements);
+            } else if (config.type === 'bailian') {
+                return await callBailianAPI(config, userPrompt, formElements);
             } else if (config.type === 'zhipu') {
                 return await callZhipuAPI(config, userPrompt, formElements);
-            } else if (config.type === 'minimax') {
-                return await callMinimaxAPI(config, userPrompt, formElements);
+            } else if (config.type === 'kimi') {
+                return await callKimiAPI(config, userPrompt, formElements);
             } else if (config.type === 'deepseek') {
                 return await callDeepSeekAPI(config, userPrompt, formElements);
-            } else if (config.type === 'siliconflow') {
-                return await callSiliconFlowAPI(config, userPrompt, formElements);
             } else if (config.type === 'volcengine') {
                 return await callVolcengineAPI(config, userPrompt, formElements);
+            } else if (config.type === 'siliconflow') {
+                return await callSiliconFlowAPI(config, userPrompt, formElements);
+            } else if (config.type === 'openrouter') {
+                return await callOpenRouterAPI(config, userPrompt, formElements);
+            } else if (config.type === 'mimo') {
+                return await callMimoAPI(config, userPrompt, formElements);
             }
         } catch (error) {
             console.error('调用AI模型时出错:', error);
@@ -1669,9 +1908,9 @@ ${JSON.stringify(formElements, null, 2)}
         }
     }
 
-    // 调用OpenAI API
-    async function callOpenAIAPI(config, userPrompt, formElements) {
-        const url = 'https://api.openai.com/v1/chat/completions';
+    // 调用阿里云百炼API（使用兼容OpenAI的接口）
+    async function callBailianAPI(config, userPrompt, formElements) {
+        const url = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
         
         // 获取当前日期和时间
         const now = new Date();
@@ -1702,9 +1941,9 @@ ${JSON.stringify(formElements, null, 2)}
 你的回答必须是一个JSON格式，包含formActions数组，每个元素包含elementId和action（填写内容或选择选项）。
 例如：{"formActions":[{"elementId":"email","action":"user@example.com"},{"elementId":"age","action":"30"}]}`;
 
-        console.log('发送给OpenAI的提示词:', systemPrompt);
+        console.log('发送给阿里云百炼的提示词:', systemPrompt);
         console.log('用户要求:', userPrompt);
-        
+
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -1712,7 +1951,7 @@ ${JSON.stringify(formElements, null, 2)}
                 'Authorization': `Bearer ${config.apiKey}`
             },
             body: JSON.stringify({
-                model: config.model,
+                model: config.model || 'qwen-long',
                 messages: [
                     {
                         role: 'system',
@@ -1723,18 +1962,19 @@ ${JSON.stringify(formElements, null, 2)}
                         content: userPrompt
                     }
                 ],
-                temperature: 0.3
+                temperature: 0.3,
+                max_tokens: 2000
             })
         });
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('OpenAI API错误:', errorData);
-            throw new Error(`OpenAI API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`);
+            console.error('阿里云百炼API错误:', errorData);
+            throw new Error(`阿里云百炼 API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`);
         }
         
         const data = await response.json();
-        console.log('OpenAI API 原始响应:', data);
+        console.log('阿里云百炼 API 原始响应:', data);
         
         // 解析响应中的JSON
         try {
@@ -1745,7 +1985,7 @@ ${JSON.stringify(formElements, null, 2)}
             }
             
             const content = data.choices[0].message.content;
-            console.log('OpenAI响应内容:', content);
+            console.log('阿里云百炼响应内容:', content);
             
             // 尝试提取JSON
             const jsonMatch = content.match(/\{.*\}/s);
@@ -1760,123 +2000,7 @@ ${JSON.stringify(formElements, null, 2)}
                 }
             }
         } catch (error) {
-            console.error('解析OpenAI响应时出错:', error);
-            throw new Error('无法解析AI响应: ' + error.message);
-        }
-    }
-
-    // 调用通义千问API
-    async function callQianwenAPI(config, userPrompt, formElements) {
-        const url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
-        
-        // 获取当前日期和时间
-        const now = new Date();
-        const dateTimeStr = now.toLocaleString('zh-CN', { 
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        });
-        
-        // 构建提示词
-        const systemPrompt = `你是一个智能表单填充助手。根据用户的要求，帮助用户填写表单。
-当前日期和时间是: ${dateTimeStr}
-
-以下是页面上的表单元素列表：
-${JSON.stringify(formElements, null, 2)}
-
-请根据用户的要求，确定应该填写哪些表单元素以及填写什么内容。
-特别注意：
-1. 对于contenteditable元素（可编辑的div），需要填写文本内容
-2. 对于复杂表单元素（type为complex的元素），可能需要填写其内部的输入元素
-3. 如果是评论框、留言框等，请根据用户要求生成合适的内容
-4. 如果需要填写日期，除非用户明确指定，否则请使用当前日期: ${dateTimeStr}
-
-你的回答必须是一个JSON格式，包含formActions数组，每个元素包含elementId和action（填写内容或选择选项）。
-例如：{"formActions":[{"elementId":"email","action":"user@example.com"},{"elementId":"age","action":"30"}]}`;
-
-        console.log('发送给通义千问的提示词:', systemPrompt);
-        console.log('用户要求:', userPrompt);
-        
-        // 根据模型类型选择正确的模型ID
-        let modelId;
-        switch(config.model) {
-            case 'qwen-long':
-                modelId = 'qwen-long';
-                break;
-            case 'qwen-max':
-                modelId = 'qwen-max';
-            default:
-                modelId = 'qwen-long';
-        }
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${config.apiKey}`,
-                'X-DashScope-SSE': 'disable'  // 禁用流式响应
-            },
-            body: JSON.stringify({
-                model: modelId,
-                input: {
-                    messages: [
-                        {
-                            role: 'system',
-                            content: systemPrompt
-                        },
-                        {
-                            role: 'user',
-                            content: userPrompt
-                        }
-                    ]
-                },
-                parameters: {
-                    result_format: 'message',
-                    temperature: 0.3,  // 较低的温度以获得更确定的回答
-                    max_tokens: 2000,
-                    top_p: 0.8
-                }
-            })
-        });
-        
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('通义千问API错误:', errorData);
-            throw new Error(`通义千问 API 请求失败: ${response.status} - ${errorData.message || '未知错误'}`);
-        }
-        
-        const data = await response.json();
-        console.log('通义千问 API 原始响应:', data);
-        
-        // 解析响应中的JSON
-        try {
-            // 检查响应格式
-            if (!data.output || !data.output.choices || !data.output.choices[0] || !data.output.choices[0].message) {
-                console.error('意外的API响应格式:', data);
-                throw new Error('API返回了意外的响应格式');
-            }
-            
-            const content = data.output.choices[0].message.content;
-            console.log('通义千问响应内容:', content);
-            
-            // 尝试提取JSON
-            const jsonMatch = content.match(/\{.*\}/s);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
-            } else {
-                // 如果没有找到JSON格式，尝试解析整个内容
-                try {
-                    return JSON.parse(content);
-                } catch {
-                    throw new Error('无法从响应中解析JSON');
-                }
-            }
-        } catch (error) {
-            console.error('解析通义千问响应时出错:', error);
+            console.error('解析阿里云百炼响应时出错:', error);
             throw new Error('无法解析AI响应: ' + error.message);
         }
     }
@@ -1978,9 +2102,9 @@ ${JSON.stringify(formElements, null, 2)}
         }
     }
 
-    // 调用Minimax API
-    async function callMinimaxAPI(config, userPrompt, formElements) {
-        const url = 'https://api.minimax.chat/v1/chat/completions';
+    // 调用Kimi API
+    async function callKimiAPI(config, userPrompt, formElements) {
+        const url = 'https://api.moonshot.cn/v1/chat/completions';
         
         // 获取当前日期和时间
         const now = new Date();
@@ -2011,7 +2135,7 @@ ${JSON.stringify(formElements, null, 2)}
 你的回答必须是一个JSON格式，包含formActions数组，每个元素包含elementId和action（填写内容或选择选项）。
 例如：{"formActions":[{"elementId":"email","action":"user@example.com"},{"elementId":"age","action":"30"}]}`;
 
-        console.log('发送给Minimax的提示词:', systemPrompt);
+        console.log('发送给Kimi的提示词:', systemPrompt);
         console.log('用户要求:', userPrompt);
         
         const response = await fetch(url, {
@@ -2021,7 +2145,7 @@ ${JSON.stringify(formElements, null, 2)}
                 'Authorization': `Bearer ${config.apiKey}`,
             },
             body: JSON.stringify({
-                model: config.model,
+                model: config.model || 'moonshot-v1-32k',
                 messages: [
                     {
                         role: 'system',
@@ -2031,46 +2155,45 @@ ${JSON.stringify(formElements, null, 2)}
                         role: 'user',
                         content: userPrompt
                     }
-                ]
+                ],
+                temperature: 0.3
             })
         });
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('Minimax API错误:', errorData);
-            throw new Error(`Minimax API 请求失败: ${response.status} - ${errorData.message || '未知错误'}`);
+            console.error('Kimi API错误:', errorData);
+            throw new Error(`Kimi API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`);
         }
         
         const data = await response.json();
-        console.log('Minimax API 原始响应:', data);
+        console.log('Kimi API 原始响应:', data);
         
         // 解析响应中的JSON
         try {
             // 检查响应格式
-            if (!data.reply || !data.reply.text) {
+            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
                 console.error('意外的API响应格式:', data);
                 throw new Error('API返回了意外的响应格式');
             }
             
-            const content = data.reply.text;
-            console.log('Minimax响应内容:', content);
+            const content = data.choices[0].message.content;
+            console.log('Kimi响应内容:', content);
             
             // 尝试提取JSON
             const jsonMatch = content.match(/\{.*\}/s);
             if (jsonMatch) {
-                try {
-                    return JSON.parse(jsonMatch[0]);
-                } catch (error) {
-                    console.error('JSON解析错误:', error);
-                    console.error('尝试解析的内容:', jsonMatch[0]);
-                    throw new Error(`解析JSON失败: ${error.message}\n原始内容: ${content.substring(0, 100)}...`);
-                }
+                return JSON.parse(jsonMatch[0]);
             } else {
-                throw new Error('无法从响应中提取JSON格式的内容');
+                try {
+                    return JSON.parse(content);
+                } catch {
+                    throw new Error('无法从响应中解析JSON');
+                }
             }
         } catch (error) {
-            console.error('调用Minimax API时出错:', error);
-            throw new Error(`调用Minimax API失败: ${error.message}`);
+            console.error('解析Kimi响应时出错:', error);
+            throw new Error('无法解析AI响应: ' + error.message);
         }
     }
 
@@ -2171,7 +2294,7 @@ ${JSON.stringify(formElements, null, 2)}
 
     // 调用SiliconFlow API
     async function callSiliconFlowAPI(config, userPrompt, formElements) {
-        const url = 'https://api.siliconflow.com/v1/chat/completions';
+        const url = 'https://api.siliconflow.cn/v1/chat/completions';
         
         // 获取当前日期和时间
         const now = new Date();
@@ -2264,9 +2387,105 @@ ${JSON.stringify(formElements, null, 2)}
         }
     }
 
-    // 调用Volcengine API
+    // 调用Volcengine API（火山引擎/豆包）
     async function callVolcengineAPI(config, userPrompt, formElements) {
-        const url = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+        // 火山引擎使用 /api/v3/responses 端点
+        const url = 'https://ark.cn-beijing.volces.com/api/v3/responses';
+        
+        // 获取当前日期和时间
+        const now = new Date();
+        const dateTimeStr = now.toLocaleString('zh-CN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        
+        // 构建提示词（火山引擎用 input 字段，需要把 system 和 user 合并）
+        const fullPrompt = `你是一个智能表单填充助手。根据用户的要求，帮助用户填写表单。
+当前日期和时间是: ${dateTimeStr}
+
+以下是页面上的表单元素列表：
+${JSON.stringify(formElements, null, 2)}
+
+请根据用户的要求，确定应该填写哪些表单元素以及填写什么内容。
+特别注意：
+1. 对于contenteditable元素（可编辑的div），需要填写文本内容
+2. 对于复杂表单元素（type为complex的元素），可能需要填写其内部的输入元素
+3. 如果是评论框、留言框等，请根据用户要求生成合适的内容
+4. 如果需要填写日期，除非用户明确指定，否则请使用当前日期: ${dateTimeStr}
+
+你的回答必须是一个JSON格式，包含formActions数组，每个元素包含elementId和action（填写内容或选择选项）。
+例如：{"formActions":[{"elementId":"email","action":"user@example.com"},{"elementId":"age","action":"30"}]}
+
+用户要求：${userPrompt}`;
+
+        console.log('发送给Volcengine的提示词:', fullPrompt);
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${config.apiKey}`,
+            },
+            body: JSON.stringify({
+                model: config.model,
+                input: fullPrompt
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Volcengine API错误:', errorData);
+            throw new Error(`Volcengine API 请求失败: ${response.status} - ${errorData.error?.message || errorData.message || '未知错误'}`);
+        }
+        
+        const data = await response.json();
+        console.log('Volcengine API 原始响应:', data);
+        
+        // 解析响应中的JSON
+        try {
+            // 火山引擎 responses 端点返回格式：{ output: { ... } } 或 { output_text: "..." }
+            let content = '';
+            if (data.output_text) {
+                content = data.output_text;
+            } else if (data.output && typeof data.output === 'string') {
+                content = data.output;
+            } else if (data.output && data.output.text) {
+                content = data.output.text;
+            } else if (data.choices && data.choices[0] && data.choices[0].message) {
+                content = data.choices[0].message.content;
+            } else {
+                console.error('意外的API响应格式:', data);
+                throw new Error('API返回了意外的响应格式');
+            }
+            
+            console.log('Volcengine响应内容:', content);
+            
+            // 尝试提取JSON
+            const jsonMatch = content.match(/\{.*\}/s);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            } else {
+                // 如果没有找到JSON格式，尝试解析整个内容
+                try {
+                    return JSON.parse(content);
+                } catch {
+                    throw new Error('无法从响应中解析JSON');
+                }
+            }
+        } catch (error) {
+            console.error('解析Volcengine响应时出错:', error);
+            throw new Error('无法解析AI响应: ' + error.message);
+        }
+    }
+
+    // 调用OpenRouter API
+    async function callOpenRouterAPI(config, userPrompt, formElements) {
+        const url = 'https://openrouter.ai/api/v1/chat/completions';
         
         // 获取当前日期和时间
         const now = new Date();
@@ -2297,8 +2516,31 @@ ${JSON.stringify(formElements, null, 2)}
 你的回答必须是一个JSON格式，包含formActions数组，每个元素包含elementId和action（填写内容或选择选项）。
 例如：{"formActions":[{"elementId":"email","action":"user@example.com"},{"elementId":"age","action":"30"}]}`;
 
-        console.log('发送给Volcengine的提示词:', systemPrompt);
+        console.log('发送给OpenRouter的提示词:', systemPrompt);
         console.log('用户要求:', userPrompt);
+        
+        // 构建请求体
+        const requestBody = {
+            model: config.model || 'google/gemini-3-flash-preview',
+            messages: [
+                {
+                    role: 'system',
+                    content: systemPrompt
+                },
+                {
+                    role: 'user',
+                    content: userPrompt
+                }
+            ]
+        };
+        
+        // 如果启用了 reasoning，添加 reasoning 参数
+        if (reasoningEnabledCheckbox && reasoningEnabledCheckbox.checked) {
+            requestBody.reasoning = {
+                enabled: true
+            };
+            console.log('已启用 Reasoning 模式');
+        }
         
         const response = await fetch(url, {
             method: 'POST',
@@ -2306,31 +2548,17 @@ ${JSON.stringify(formElements, null, 2)}
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${config.apiKey}`,
             },
-            body: JSON.stringify({
-                model: config.model,
-                messages: [
-                    {
-                        role: 'system',
-                        content: systemPrompt
-                    },
-                    {
-                        role: 'user',
-                        content: userPrompt
-                    }
-                ],
-                stream: false,
-                temperature: 0.3,
-            })
+            body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            console.error('Volcengine API错误:', errorData);
-            throw new Error(`Volcengine API 请求失败: ${response.status} - ${errorData.message || '未知错误'}`);
+            console.error('OpenRouter API错误:', errorData);
+            throw new Error(`OpenRouter API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`);
         }
         
         const data = await response.json();
-        console.log('Volcengine API 原始响应:', data);
+        console.log('OpenRouter API 原始响应:', data);
         
         // 解析响应中的JSON
         try {
@@ -2341,14 +2569,13 @@ ${JSON.stringify(formElements, null, 2)}
             }
             
             const content = data.choices[0].message.content;
-            console.log('Volcengine响应内容:', content);
+            console.log('OpenRouter响应内容:', content);
             
             // 尝试提取JSON
             const jsonMatch = content.match(/\{.*\}/s);
             if (jsonMatch) {
                 return JSON.parse(jsonMatch[0]);
             } else {
-                // 如果没有找到JSON格式，尝试解析整个内容
                 try {
                     return JSON.parse(content);
                 } catch {
@@ -2356,8 +2583,209 @@ ${JSON.stringify(formElements, null, 2)}
                 }
             }
         } catch (error) {
-            console.error('解析Volcengine响应时出错:', error);
+            console.error('解析OpenRouter响应时出错:', error);
             throw new Error('无法解析AI响应: ' + error.message);
+        }
+    }
+
+    // 调用小米Mimo API
+    async function callMimoAPI(config, userPrompt, formElements) {
+        const url = 'https://api.xiaomimimo.com/v1/chat/completions';
+        
+        // 获取当前日期和时间
+        const now = new Date();
+        const dateTimeStr = now.toLocaleString('zh-CN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        
+        // 构建提示词
+        const systemPrompt = `你是一个智能表单填充助手。根据用户的要求，帮助用户填写表单。
+当前日期和时间是: ${dateTimeStr}
+
+以下是页面上的表单元素列表：
+${JSON.stringify(formElements, null, 2)}
+
+请根据用户的要求，确定应该填写哪些表单元素以及填写什么内容。
+特别注意：
+1. 对于contenteditable元素（可编辑的div），需要填写文本内容
+2. 对于复杂表单元素（type为complex的元素），可能需要填写其内部的输入元素
+3. 如果是评论框、留言框等，请根据用户要求生成合适的内容
+4. 如果需要填写日期，除非用户明确指定，否则请使用当前日期: ${dateTimeStr}
+
+你的回答必须是一个JSON格式，包含formActions数组，每个元素包含elementId和action（填写内容或选择选项）。
+例如：{"formActions":[{"elementId":"email","action":"user@example.com"},{"elementId":"age","action":"30"}]}`;
+
+        console.log('发送给小米Mimo的提示词:', systemPrompt);
+        console.log('用户要求:', userPrompt);
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${config.apiKey}`,
+            },
+            body: JSON.stringify({
+                model: config.model || 'mimo-v2-flash',
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemPrompt
+                    },
+                    {
+                        role: 'user',
+                        content: userPrompt
+                    }
+                ],
+                temperature: 0.3
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('小米Mimo API错误:', errorData);
+            throw new Error(`小米Mimo API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`);
+        }
+        
+        const data = await response.json();
+        console.log('小米Mimo API 原始响应:', data);
+        
+        // 解析响应中的JSON
+        try {
+            // 检查响应格式
+            if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                console.error('意外的API响应格式:', data);
+                throw new Error('API返回了意外的响应格式');
+            }
+            
+            const content = data.choices[0].message.content;
+            console.log('小米Mimo响应内容:', content);
+            
+            // 尝试提取JSON
+            const jsonMatch = content.match(/\{.*\}/s);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            } else {
+                try {
+                    return JSON.parse(content);
+                } catch {
+                    throw new Error('无法从响应中解析JSON');
+                }
+            }
+        } catch (error) {
+            console.error('解析小米Mimo响应时出错:', error);
+            throw new Error('无法解析AI响应: ' + error.message);
+        }
+    }
+
+    // 调用LM Studio API
+    async function callLMStudioAPI(config, userPrompt, formElements) {
+        const url = `${config.url || 'http://localhost:1234'}/v1/chat/completions`;
+        
+        // 获取当前日期和时间
+        const now = new Date();
+        const dateTimeStr = now.toLocaleString('zh-CN', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+        
+        // 构建提示词
+        const systemPrompt = `你是一个智能表单填充助手。根据用户的要求，帮助用户填写表单。
+当前日期和时间是: ${dateTimeStr}
+
+以下是页面上的表单元素列表：
+${JSON.stringify(formElements, null, 2)}
+
+请根据用户的要求，确定应该填写哪些表单元素以及填写什么内容。
+特别注意：
+1. 对于contenteditable元素（可编辑的div），需要填写文本内容
+2. 对于复杂表单元素（type为complex的元素），可能需要填写其内部的输入元素
+3. 如果是评论框、留言框等，请根据用户要求生成合适的内容
+4. 如果需要填写日期，除非用户明确指定，否则请使用当前日期: ${dateTimeStr}
+
+你的回答必须是一个JSON格式，包含formActions数组，每个元素包含elementId和action（填写内容或选择选项）。
+例如：{"formActions":[{"elementId":"email","action":"user@example.com"},{"elementId":"age","action":"30"}]}`;
+
+        console.log('发送给LM Studio的提示词:', systemPrompt);
+        console.log('用户要求:', userPrompt);
+        console.log('请求URL:', url);
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: config.model || 'local-model',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: systemPrompt
+                        },
+                        {
+                            role: 'user',
+                            content: userPrompt
+                        }
+                    ],
+                    temperature: 0.3
+                })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('LM Studio API错误:', errorData);
+                throw new Error(`LM Studio API 请求失败: ${response.status} - ${errorData.error?.message || '未知错误'}`);
+            }
+            
+            const data = await response.json();
+            console.log('LM Studio API 原始响应:', data);
+            
+            // 解析响应中的JSON
+            try {
+                // 检查响应格式
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    console.error('意外的API响应格式:', data);
+                    throw new Error('API返回了意外的响应格式');
+                }
+                
+                const content = data.choices[0].message.content;
+                console.log('LM Studio响应内容:', content);
+                
+                // 尝试提取JSON
+                const jsonMatch = content.match(/\{.*\}/s);
+                if (jsonMatch) {
+                    return JSON.parse(jsonMatch[0]);
+                } else {
+                    try {
+                        return JSON.parse(content);
+                    } catch {
+                        throw new Error('无法从响应中解析JSON');
+                    }
+                }
+            } catch (error) {
+                console.error('解析LM Studio响应时出错:', error);
+                throw new Error('无法解析AI响应: ' + error.message);
+            }
+        } catch (error) {
+            console.error('调用LM Studio API时出错:', error);
+            if (error.message.includes('Failed to fetch')) {
+                throw new Error(`无法连接到LM Studio服务(${url})，请确保：
+1. LM Studio 服务已启动
+2. 服务地址正确（默认为 http://localhost:1234）
+3. 已在 LM Studio 中加载模型`);
+            }
+            throw error;
         }
     }
 
@@ -2423,25 +2851,17 @@ ${JSON.stringify(formElements, null, 2)}
                         modelSelectionSelect.appendChild(option);
                     });
                     
-                    // 如果有保存的配置，尝试选择之前选择的模型
-                    chrome.storage.sync.get('modelConfig', function(data) {
-                        if (data.modelConfig && data.modelConfig.type === 'ollama' && data.modelConfig.model) {
-                            // 检查是否存在该模型选项
-                            if (modelSelectionSelect.querySelector(`option[value="${data.modelConfig.model}"]`)) {
-                                modelSelectionSelect.value = data.modelConfig.model;
-                                // 更新输入框的值
-                                modelInput.value = data.modelConfig.model;
-                            }
-                        } else if (modelSelectionSelect.options.length > 0) {
-                            // 默认选择第一个模型
-                            modelInput.value = modelSelectionSelect.options[0].value;
-                        }
-                        
-                        // 渲染下拉列表
-                        renderModelList(currentModels);
-                    });
+                    // 缓存模型列表
+                    modelConfigs.ollama = modelConfigs.ollama || {};
+                    modelConfigs.ollama.models = currentModels;
                     
-                    showToastInPage(`成功获取到 ${data.models.length} 个Ollama模型`, 'info');
+                    // 渲染下拉列表
+                    renderModelList(currentModels);
+                    
+                    // 恢复之前选择的模型
+                    restoreSavedModel('ollama');
+                    
+                    showToastInPage(`成功获取到 ${data.models.length} 个Ollama模型`, 'success');
                 }
                 
                 setButtonsState(false); // 启用按钮
@@ -2561,9 +2981,36 @@ ${JSON.stringify(formElements, null, 2)}
         modelSelectionSelect.value = model.value;
         hideModelDropdown();
         
+        // 检查是否支持 reasoning 并更新开关显示
+        updateReasoningToggle(model);
+        
         // 触发 change 事件
         const event = new Event('change');
         modelSelectionSelect.dispatchEvent(event);
+    }
+    
+    // 更新 Reasoning 开关显示状态
+    function updateReasoningToggle(model) {
+        const provider = modelProviderSelect.value;
+        
+        // 只有 OpenRouter 支持 reasoning 开关
+        if (provider === 'openrouter' && model && model.supportedParameters) {
+            const supportsReasoning = model.supportedParameters.includes('reasoning') || 
+                                      model.supportedParameters.includes('include_reasoning');
+            if (supportsReasoning) {
+                reasoningToggleContainer.classList.remove('hidden');
+                return;
+            }
+        }
+        
+        // 隐藏开关
+        reasoningToggleContainer.classList.add('hidden');
+        reasoningEnabledCheckbox.checked = false;
+    }
+    
+    // 根据模型值查找模型信息
+    function findModelByValue(value) {
+        return currentModels.find(m => m.value === value);
     }
     
     // 刷新模型列表
@@ -2571,6 +3018,8 @@ ${JSON.stringify(formElements, null, 2)}
         const provider = modelProviderSelect.value;
         if (provider === 'ollama') {
             fetchOllamaModels();
+        } else if (provider === 'lmstudio') {
+            fetchLMStudioModels();
         } else {
             const apiKey = apiKeyInput.value.trim();
             if (apiKey) {

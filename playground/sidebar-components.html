@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Former 侧边栏组件 Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        /* ===== 侧边栏容器模拟 ===== */
+        .sidebar-preview {
+            width: 360px;
+            min-height: 600px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+        }
+
+        /* ===== 加载指示器 ===== */
+        .loading-bar {
+            width: 100%;
+            height: 3px;
+            background: #f1f1f1;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -30%;
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, transparent, #4285f4, transparent);
+            animation: loading-slide 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loading-slide {
+            0% { left: -30%; }
+            100% { left: 100%; }
+        }
+
+        .loading-bar.paused::after {
+            animation-play-state: paused;
+        }
+
+        /* ===== 卡片样式 ===== */
+        .sidebar-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .sidebar-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 10px;
+        }
+
+        /* ===== 输入框 ===== */
+        .sidebar-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .sidebar-input:hover {
+            border-color: #bbb;
+        }
+
+        .sidebar-input:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+        }
+
+        /* ===== 文本域 ===== */
+        .sidebar-textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.2s ease;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .sidebar-textarea:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+        }
+
+        /* ===== 按钮 ===== */
+        .sidebar-btn {
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .sidebar-btn-primary {
+            background: #4285f4;
+            color: #fff;
+        }
+
+        .sidebar-btn-primary:hover {
+            background: #3367d6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+        }
+
+        .sidebar-btn-primary:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .sidebar-btn-secondary {
+            background: #34a853;
+            color: #fff;
+        }
+
+        .sidebar-btn-secondary:hover {
+            background: #2d9249;
+        }
+
+        .sidebar-btn-danger {
+            background: #ea4335;
+            color: #fff;
+        }
+
+        .sidebar-btn-danger:hover {
+            background: #d33426;
+        }
+
+        /* 按钮禁用状态 */
+        .sidebar-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* 按钮加载状态 */
+        .sidebar-btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .sidebar-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: btn-spin 0.8s linear infinite;
+        }
+
+        @keyframes btn-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 按钮成功状态 */
+        .sidebar-btn.success {
+            background: #34a853;
+            animation: btn-pulse 0.4s ease;
+        }
+
+        @keyframes btn-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* ===== 下拉选择 ===== */
+        .sidebar-select {
+            width: 100%;
+            padding: 8px 32px 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 10px center;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .sidebar-select:hover {
+            border-color: #bbb;
+        }
+
+        .sidebar-select:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+        }
+
+        /* ===== 模型输入框带刷新按钮 ===== */
+        .model-input-container {
+            position: relative;
+        }
+
+        .model-input {
+            width: 100%;
+            padding: 8px 36px 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .model-input:focus {
+            border-color: #4285f4;
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.15);
+        }
+
+        .refresh-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #888;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .refresh-btn:hover {
+            color: #4285f4;
+            background: rgba(66, 133, 244, 0.1);
+        }
+
+        .refresh-btn.spinning svg {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== 模型下拉列表 ===== */
+        .model-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+        }
+
+        .model-dropdown.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .model-option {
+            padding: 10px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .model-option:last-child {
+            border-bottom: none;
+        }
+
+        .model-option:hover {
+            background: #f5f7fa;
+        }
+
+        .model-option.selected {
+            background: #e6f4ff;
+            color: #1890ff;
+        }
+
+        /* ===== 折叠面板 ===== */
+        .collapse-panel {
+            border-radius: 6px;
+            overflow: hidden;
+            background: #fafafa;
+        }
+
+        .collapse-header {
+            padding: 10px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .collapse-header:hover {
+            background: #f0f0f0;
+        }
+
+        .collapse-title {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .collapse-arrow {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.25s ease;
+            color: #999;
+        }
+
+        .collapse-panel.open .collapse-arrow {
+            transform: rotate(180deg);
+        }
+
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s ease;
+        }
+
+        .collapse-panel.open .collapse-content {
+            max-height: 400px;
+        }
+
+        .collapse-inner {
+            padding: 12px;
+            padding-top: 0;
+        }
+
+        /* ===== 标签 ===== */
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: #e6e6e6;
+        }
+
+        .tag.active {
+            background: #e6f4ff;
+            color: #1890ff;
+        }
+
+        .tag-delete {
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.15s ease;
+        }
+
+        .tag:hover .tag-delete {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 标签动画 */
+        .tag.adding {
+            animation: tag-appear 0.25s ease;
+        }
+
+        @keyframes tag-appear {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(-8px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .tag.removing {
+            animation: tag-disappear 0.2s ease forwards;
+        }
+
+        @keyframes tag-disappear {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        /* ===== 状态提示 ===== */
+        .status-text {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            padding: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .status-text.success {
+            color: #34a853;
+        }
+
+        .status-text.error {
+            color: #ea4335;
+        }
+
+        .status-text.info {
+            color: #4285f4;
+        }
+
+        /* 状态文本渐入 */
+        .status-text.fade-in {
+            animation: fade-in 0.3s ease;
+        }
+
+        @keyframes fade-in {
+            0% {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 字数统计 ===== */
+        .word-count {
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+            margin-top: 4px;
+            transition: color 0.2s;
+        }
+
+        .word-count.warning {
+            color: #f57c00;
+        }
+
+        .word-count.error {
+            color: #ea4335;
+        }
+
+        /* ===== 快捷提示 ===== */
+        .shortcut-tip {
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* ===== 按钮组 ===== */
+        .btn-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-row .sidebar-btn {
+            flex: 1;
+        }
+
+        /* ===== 小按钮 ===== */
+        .small-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .small-btn-primary {
+            background: #1890ff;
+            color: #fff;
+        }
+
+        .small-btn-primary:hover {
+            background: #40a9ff;
+        }
+
+        .text-btn {
+            background: none;
+            border: none;
+            color: #1890ff;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 6px 12px;
+        }
+
+        .text-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== 页脚 ===== */
+        .sidebar-footer {
+            text-align: center;
+            padding: 12px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .sidebar-footer a {
+            color: #999;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .sidebar-footer a:hover {
+            color: #4285f4;
+        }
+
+        /* ===== 模态框 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+            z-index: 1000;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 320px;
+            width: 90%;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .modal-overlay.visible .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .modal-body {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            width: 100%;
+            padding: 10px;
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #3367d6;
+        }
+
+        /* ===== 提示信息图标 ===== */
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            font-size: 11px;
+            color: #ff4d4f;
+            cursor: help;
+            margin-left: 4px;
+        }
+
+        .tooltip-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip-content {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(4px);
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            max-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .tooltip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0,0,0,0.85);
+        }
+
+        .tooltip-wrapper:hover .tooltip-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ===== Demo 区域 ===== */
+        .demo-section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .demo-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .demo-desc {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .control-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- 页面标题 -->
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">AI Former 侧边栏组件 Playground</h1>
+            <p class="text-gray-600">用于调试浏览器插件侧边栏的组件动效</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- 左侧：组件演示 -->
+            <div>
+                <!-- 1. 加载指示器 -->
+                <div class="demo-section">
+                    <h2 class="demo-title">1. 加载指示器</h2>
+                    <p class="demo-desc">表单处理过程中的加载状态</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-2">持续加载</p>
+                            <div class="loading-bar" id="loading-bar-1"></div>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 mb-2">可控制</p>
+                            <div class="loading-bar paused" id="loading-bar-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="toggleLoading()">开始/暂停</button>
+                    </div>
+                </div>
+
+                <!-- 2. 按钮状态 -->
+                <div class="demo-section">
+                    <h2 class="demo-title">2. 按钮状态动效</h2>
+                    <p class="demo-desc">各种按钮的交互状态</p>
+                    
+                    <div class="space-y-3" style="max-width: 280px;">
+                        <button class="sidebar-btn sidebar-btn-primary" id="demo-btn-1">
+                            智能识别并填充表单
+                        </button>
+                        <div class="btn-row">
+                            <button class="sidebar-btn sidebar-btn-secondary" id="demo-btn-2">识别表单</button>
+                            <button class="sidebar-btn sidebar-btn-danger" id="demo-btn-3">清除识别</button>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="demoBtnLoading()">演示加载</button>
+                        <button class="control-btn" onclick="demoBtnSuccess()">演示成功</button>
+                        <button class="control-btn" onclick="demoBtnDisabled()">演示禁用</button>
+                        <button class="control-btn" onclick="resetBtns()">重置</button>
+                    </div>
+                </div>
+
+                <!-- 3. 模型选择器 -->
+                <div class="demo-section">
+                    <h2 class="demo-title">3. 模型选择器</h2>
+                    <p class="demo-desc">带下拉列表和刷新按钮的输入框</p>
+                    
+                    <div style="max-width: 280px;">
+                        <label class="block text-sm text-gray-600 mb-1">
+                            选择模型:
+                            <span class="tooltip-wrapper">
+                                <span class="info-icon">提醒</span>
+                                <span class="tooltip-content">请选择支持 8k 以上的模型
+推荐：gpt-4o-mini、qwen-long</span>
+                            </span>
+                        </label>
+                        <div class="model-input-container">
+                            <input type="text" class="model-input" placeholder="选择或输入模型名称" id="model-input" onclick="toggleModelDropdown()">
+                            <button class="refresh-btn" id="refresh-btn" onclick="refreshModels(event)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
+                                    <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+                                </svg>
+                            </button>
+                            <div class="model-dropdown" id="model-dropdown">
+                                <div class="model-option" onclick="selectModel('gpt-4o-mini')">gpt-4o-mini</div>
+                                <div class="model-option" onclick="selectModel('gpt-4o')">gpt-4o</div>
+                                <div class="model-option" onclick="selectModel('qwen-long')">qwen-long</div>
+                                <div class="model-option" onclick="selectModel('deepseek-chat')">deepseek-chat</div>
+                                <div class="model-option" onclick="selectModel('GLM-4-Long')">GLM-4-Long</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="toggleModelDropdown()">切换下拉</button>
+                        <button class="control-btn" onclick="refreshModels(event)">刷新模型</button>
+                    </div>
+                </div>
+
+                <!-- 4. 折叠面板 -->
+                <div class="demo-section">
+                    <h2 class="demo-title">4. 折叠面板</h2>
+                    <p class="demo-desc">补充信息等可折叠区域</p>
+                    
+                    <div style="max-width: 320px;">
+                        <div class="collapse-panel" id="collapse-panel">
+                            <div class="collapse-header" onclick="toggleCollapse()">
+                                <span class="collapse-title">补充信息（可选）</span>
+                                <svg class="collapse-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                            </div>
+                            <div class="collapse-content">
+                                <div class="collapse-inner">
+                                    <div class="tag-container" id="tag-container">
+                                        <div class="tag active">
+                                            <span>个人简历</span>
+                                            <span class="tag-delete" onclick="removeTag(this, event)">
+                                                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                    <path d="M18 6L6 18M6 6l12 12"></path>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                        <div class="tag">
+                                            <span>工作经历</span>
+                                            <span class="tag-delete" onclick="removeTag(this, event)">
+                                                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                    <path d="M18 6L6 18M6 6l12 12"></path>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <textarea class="sidebar-textarea" placeholder="请输入补充信息..." id="info-textarea"></textarea>
+                                    <div class="word-count" id="word-count">0 字</div>
+                                    <div class="flex justify-end gap-2 mt-2">
+                                        <button class="text-btn">另存为</button>
+                                        <button class="small-btn small-btn-primary" onclick="saveInfo()">保存</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="toggleCollapse()">切换展开</button>
+                        <button class="control-btn" onclick="addDemoTag()">添加标签</button>
+                    </div>
+                </div>
+
+                <!-- 5. 状态提示 -->
+                <div class="demo-section">
+                    <h2 class="demo-title">5. 状态提示文字</h2>
+                    <p class="demo-desc">操作结果的文字反馈</p>
+                    
+                    <div style="max-width: 280px;">
+                        <div class="status-text" id="status-text">等待操作...</div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button class="control-btn" onclick="showStatus('info')">信息</button>
+                        <button class="control-btn" onclick="showStatus('success')">成功</button>
+                        <button class="control-btn" onclick="showStatus('error')">错误</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：完整侧边栏预览 -->
+            <div>
+                <div class="demo-section">
+                    <h2 class="demo-title">完整侧边栏预览</h2>
+                    <p class="demo-desc">模拟真实的侧边栏交互效果</p>
+                    
+                    <div class="flex justify-center">
+                        <div class="sidebar-preview" id="sidebar-preview">
+                            <div class="p-4">
+                                <h1 class="text-base font-semibold text-gray-800 text-center mb-4">智能表单填充助手</h1>
+                                
+                                <!-- 模型配置 -->
+                                <div class="sidebar-card">
+                                    <div class="sidebar-card-title">模型配置</div>
+                                    
+                                    <div class="grid grid-cols-2 gap-2 mb-3">
+                                        <div>
+                                            <label class="block text-xs text-gray-500 mb-1">选择模型提供商:</label>
+                                            <select class="sidebar-select text-xs">
+                                                <option>OpenAI</option>
+                                                <option>通义千问</option>
+                                                <option>DeepSeek</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-500 mb-1">API Key</label>
+                                            <input type="text" class="sidebar-input text-xs" placeholder="输入 API Key">
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-xs text-gray-500 mb-1">
+                                            选择模型:
+                                            <span class="tooltip-wrapper">
+                                                <span class="info-icon">提醒</span>
+                                                <span class="tooltip-content">请选择支持 8k 以上的模型</span>
+                                            </span>
+                                        </label>
+                                        <div class="model-input-container">
+                                            <input type="text" class="model-input text-xs" placeholder="选择或输入模型" value="gpt-4o-mini" id="preview-model-input">
+                                            <button class="refresh-btn" id="preview-refresh-btn">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
+                                                    <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 表单填充 -->
+                                <div class="sidebar-card">
+                                    <div class="sidebar-card-title">表单填充</div>
+                                    <label class="block text-xs text-gray-500 mb-1">请输入您的要求:</label>
+                                    <textarea class="sidebar-textarea text-xs" placeholder="例如：请帮我填写个人信息，我是30岁的软件工程师" id="preview-prompt"></textarea>
+                                    <div class="shortcut-tip">提示: 按 Ctrl+Enter 快速填充</div>
+                                    
+                                    <button class="sidebar-btn sidebar-btn-primary mt-3" id="preview-fill-btn">
+                                        智能识别并填充表单
+                                    </button>
+                                    <div class="btn-row mt-2">
+                                        <button class="sidebar-btn sidebar-btn-secondary" id="preview-extract-btn">识别表单</button>
+                                        <button class="sidebar-btn sidebar-btn-danger" id="preview-clear-btn">清除识别</button>
+                                    </div>
+                                    
+                                    <!-- 加载指示器 -->
+                                    <div class="loading-bar paused mt-2" id="preview-loading"></div>
+                                    <div class="status-text" id="preview-status"></div>
+                                </div>
+                                
+                                <!-- 补充信息 -->
+                                <div class="sidebar-card">
+                                    <div class="collapse-panel open" id="preview-collapse">
+                                        <div class="collapse-header" onclick="togglePreviewCollapse()">
+                                            <span class="collapse-title">补充信息（可选）</span>
+                                            <svg class="collapse-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="6 9 12 15 18 9"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div class="collapse-content">
+                                            <div class="collapse-inner">
+                                                <div class="tag-container" id="preview-tags">
+                                                    <div class="tag active">
+                                                        <span>个人简历</span>
+                                                        <span class="tag-delete">
+                                                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                                <path d="M18 6L6 18M6 6l12 12"></path>
+                                                            </svg>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <textarea class="sidebar-textarea text-xs" style="min-height: 60px;" placeholder="请输入补充信息..."></textarea>
+                                                <div class="flex justify-end gap-2 mt-2">
+                                                    <button class="text-btn">另存为</button>
+                                                    <button class="small-btn small-btn-primary">保存</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 页脚 -->
+                                <div class="sidebar-footer">
+                                    <a href="#">提意见</a>
+                                    <span class="mx-1">·</span>
+                                    <a href="#">GitHub</a>
+                                    <span class="mx-1">·</span>
+                                    <span>v1.1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons justify-center">
+                        <button class="control-btn" onclick="demoFullFlow()">演示完整填充流程</button>
+                        <button class="control-btn" onclick="resetPreview()">重置预览</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="text-center py-8 text-gray-500 text-sm">
+            <p>AI Former 侧边栏组件 Playground v1.0</p>
+            <p class="mt-1">Made by <a href="http://luoxiaoshan.cn" class="text-blue-500 hover:underline">洛小山</a></p>
+        </footer>
+    </div>
+
+    <!-- 模态框 -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">保存成功</h3>
+            <p class="modal-body">补充信息已保存到本地存储。</p>
+            <button class="modal-close" onclick="closeModal()">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== 加载指示器 =====
+        function toggleLoading() {
+            const bar = document.getElementById('loading-bar-2');
+            bar.classList.toggle('paused');
+        }
+
+        // ===== 按钮状态 =====
+        function demoBtnLoading() {
+            const btn = document.getElementById('demo-btn-1');
+            btn.classList.add('loading');
+            btn.disabled = true;
+        }
+
+        function demoBtnSuccess() {
+            const btn = document.getElementById('demo-btn-1');
+            btn.classList.remove('loading');
+            btn.classList.add('success');
+            btn.innerHTML = '填充完成';
+            btn.disabled = false;
+        }
+
+        function demoBtnDisabled() {
+            const btn = document.getElementById('demo-btn-1');
+            btn.disabled = true;
+        }
+
+        function resetBtns() {
+            const btn = document.getElementById('demo-btn-1');
+            btn.classList.remove('loading', 'success');
+            btn.innerHTML = '智能识别并填充表单';
+            btn.disabled = false;
+        }
+
+        // ===== 模型选择器 =====
+        let dropdownVisible = false;
+
+        function toggleModelDropdown() {
+            const dropdown = document.getElementById('model-dropdown');
+            dropdownVisible = !dropdownVisible;
+            dropdown.classList.toggle('visible', dropdownVisible);
+        }
+
+        function selectModel(name) {
+            document.getElementById('model-input').value = name;
+            
+            // 更新选中状态
+            document.querySelectorAll('.model-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.textContent === name);
+            });
+            
+            toggleModelDropdown();
+        }
+
+        function refreshModels(e) {
+            e.stopPropagation();
+            const btn = document.getElementById('refresh-btn');
+            btn.classList.add('spinning');
+            
+            setTimeout(() => {
+                btn.classList.remove('spinning');
+            }, 1000);
+        }
+
+        // 点击外部关闭下拉
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.model-input-container') && dropdownVisible) {
+                toggleModelDropdown();
+            }
+        });
+
+        // ===== 折叠面板 =====
+        function toggleCollapse() {
+            document.getElementById('collapse-panel').classList.toggle('open');
+        }
+
+        function togglePreviewCollapse() {
+            document.getElementById('preview-collapse').classList.toggle('open');
+        }
+
+        // ===== 标签 =====
+        let tagCounter = 0;
+        const tagNames = ['教育背景', '技能特长', '项目经验', '获奖情况'];
+
+        function addDemoTag() {
+            const container = document.getElementById('tag-container');
+            const tag = document.createElement('div');
+            tag.className = 'tag adding';
+            tag.innerHTML = `
+                <span>${tagNames[tagCounter % tagNames.length]}</span>
+                <span class="tag-delete" onclick="removeTag(this, event)">
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </span>
+            `;
+            container.appendChild(tag);
+            tagCounter++;
+            
+            setTimeout(() => tag.classList.remove('adding'), 250);
+        }
+
+        function removeTag(deleteBtn, e) {
+            e.stopPropagation();
+            const tag = deleteBtn.parentElement;
+            tag.classList.add('removing');
+            setTimeout(() => tag.remove(), 200);
+        }
+
+        // ===== 字数统计 =====
+        const textarea = document.getElementById('info-textarea');
+        const wordCount = document.getElementById('word-count');
+
+        textarea.addEventListener('input', () => {
+            const count = textarea.value.length;
+            wordCount.textContent = count + ' 字';
+            
+            wordCount.classList.remove('warning', 'error');
+            if (count > 800) {
+                wordCount.classList.add('error');
+            } else if (count > 500) {
+                wordCount.classList.add('warning');
+            }
+        });
+
+        // ===== 状态提示 =====
+        function showStatus(type) {
+            const status = document.getElementById('status-text');
+            status.classList.remove('success', 'error', 'info', 'fade-in');
+            
+            void status.offsetWidth; // 触发重绘
+            
+            status.classList.add(type, 'fade-in');
+            
+            if (type === 'success') {
+                status.textContent = '表单填充成功！已填充 8 个字段';
+            } else if (type === 'error') {
+                status.textContent = '填充失败：无法连接到 API';
+            } else {
+                status.textContent = '正在分析表单结构...';
+            }
+        }
+
+        // ===== 保存信息 =====
+        function saveInfo() {
+            openModal();
+        }
+
+        // ===== 模态框 =====
+        function openModal() {
+            document.getElementById('modal').classList.add('visible');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('visible');
+        }
+
+        // ===== 完整流程演示 =====
+        function demoFullFlow() {
+            const fillBtn = document.getElementById('preview-fill-btn');
+            const loading = document.getElementById('preview-loading');
+            const status = document.getElementById('preview-status');
+            
+            // 阶段1：开始加载
+            fillBtn.classList.add('loading');
+            fillBtn.disabled = true;
+            loading.classList.remove('paused');
+            status.textContent = '正在分析表单结构...';
+            status.className = 'status-text info fade-in';
+            
+            setTimeout(() => {
+                status.textContent = '正在调用 AI 生成填充内容...';
+            }, 1500);
+            
+            setTimeout(() => {
+                status.textContent = '正在填充表单字段...';
+            }, 3000);
+            
+            // 阶段2：完成
+            setTimeout(() => {
+                fillBtn.classList.remove('loading');
+                fillBtn.classList.add('success');
+                fillBtn.innerHTML = '填充完成';
+                loading.classList.add('paused');
+                status.textContent = '表单填充成功！已填充 12 个字段';
+                status.className = 'status-text success fade-in';
+            }, 4500);
+        }
+
+        function resetPreview() {
+            const fillBtn = document.getElementById('preview-fill-btn');
+            const loading = document.getElementById('preview-loading');
+            const status = document.getElementById('preview-status');
+            
+            fillBtn.classList.remove('loading', 'success');
+            fillBtn.innerHTML = '智能识别并填充表单';
+            fillBtn.disabled = false;
+            loading.classList.add('paused');
+            status.textContent = '';
+            status.className = 'status-text';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Former - 输入框交互演示</title>
+    <style>
+        :root {
+            --primary: #4285f4;
+            --primary-dark: #1967d2;
+            --primary-light: #e8f0fe;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --text-tertiary: #80868b;
+            --border: #e8eaed;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-hover: #f1f3f4;
+            --success: #1e8e3e;
+            --shadow-sm: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #8ab4f8;
+                --primary-dark: #669df6;
+                --primary-light: #1a3a5c;
+                --text-primary: #e8eaed;
+                --text-secondary: #9aa0a6;
+                --text-tertiary: #80868b;
+                --border: #3c4043;
+                --bg-primary: #202124;
+                --bg-secondary: #292a2d;
+                --bg-hover: #35363a;
+                --success: #81c995;
+                --shadow-sm: 0 1px 2px 0 rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            padding: 40px 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .page-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .demo-section {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .section-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* 输入框容器 */
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .input-wrapper:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        /* 输入框 */
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1f87fc;
+            box-shadow: 0 0 0 3px rgba(31, 135, 252, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        /* 有缓存的输入框 */
+        .form-input.has-cache {
+            background: rgba(31, 135, 252, 0.08);
+            border-color: #1f87fc;
+        }
+
+        .form-input.has-cache::placeholder {
+            color: #1f87fc;
+        }
+
+        .form-input.has-cache:focus {
+            background: rgba(31, 135, 252, 0.12);
+            border-color: #1f87fc;
+            box-shadow: 0 0 0 3px rgba(31, 135, 252, 0.1);
+        }
+
+        /* 填充完成状态（有缓存值填充后） */
+        .form-input.has-cache.filled {
+            border-color: #2d8f47;
+            background: #f0fdf4;
+            animation: fillComplete 0.4s ease-out;
+        }
+
+        @keyframes fillComplete {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .form-input:focus {
+                border-color: #4d9fff;
+                box-shadow: 0 0 0 3px rgba(77, 159, 255, 0.2);
+            }
+
+            .form-input.has-cache {
+                background: rgba(77, 159, 255, 0.15);
+                border-color: #4d9fff;
+            }
+
+            .form-input.has-cache::placeholder {
+                color: #4d9fff;
+            }
+
+            .form-input.has-cache:focus {
+                background: rgba(77, 159, 255, 0.2);
+                border-color: #4d9fff;
+                box-shadow: 0 0 0 3px rgba(77, 159, 255, 0.2);
+            }
+
+            .form-input.has-cache.filled {
+                border-color: #35a557;
+                background: rgba(53, 165, 87, 0.15);
+            }
+        }
+
+        .form-input.has-cache {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        /* 输入框动效 */
+        .form-input.scanning {
+            animation: scanPulse 1.5s ease-in-out;
+            border-color: var(--primary);
+        }
+
+        .form-input.filling {
+            animation: fillProgress 0.8s ease-out;
+            border-color: var(--primary);
+        }
+
+        .form-input.filled {
+            animation: fillSuccess 0.5s ease-out;
+            border-color: var(--success);
+        }
+
+        .form-input.error {
+            animation: errorShake 0.5s ease-in-out;
+            border-color: var(--error);
+        }
+
+        @keyframes scanPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); }
+            50% { box-shadow: 0 0 0 8px rgba(66, 133, 244, 0.2); }
+        }
+
+        @keyframes fillProgress {
+            0% { background: var(--bg-primary); }
+            50% { background: var(--primary-light); }
+            100% { background: var(--bg-primary); }
+        }
+
+        @keyframes fillSuccess {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* 操作栏 */
+        .action-bar {
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(4px);
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .input-wrapper.active .action-bar {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* 操作按钮 */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .action-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--text-tertiary);
+        }
+
+        .action-btn.primary {
+            background: #1f87fc;
+            color: white;
+            border-color: #1f87fc;
+        }
+
+        .action-btn.primary:hover {
+            background: #0d6edb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .action-btn.primary {
+                background: #4d9fff;
+                border-color: #4d9fff;
+            }
+
+            .action-btn.primary:hover {
+                background: #1f87fc;
+            }
+        }
+
+        .action-btn.success {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .action-btn.success:hover {
+            background: #1a7935;
+        }
+
+        /* 下拉菜单 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-arrow {
+            width: 12px;
+            height: 12px;
+            margin-left: 2px;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            min-width: 160px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+            z-index: 200;
+        }
+
+        .dropdown:hover .dropdown-menu,
+        .dropdown-menu.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+
+        .dropdown-item:first-child {
+            border-radius: 7px 7px 0 0;
+        }
+
+        .dropdown-item:last-child {
+            border-radius: 0 0 7px 7px;
+        }
+
+        .dropdown-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .dropdown-item svg {
+            flex-shrink: 0;
+            color: var(--text-secondary);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 6px 0;
+        }
+
+        /* 缓存确认按钮 */
+        .cache-confirm-btn {
+            padding: 6px 10px;
+            background: #2d8f47;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .cache-confirm-btn:hover {
+            background: #25753a;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .cache-confirm-btn {
+                background: #35a557;
+            }
+
+            .cache-confirm-btn:hover {
+                background: #2d8f47;
+            }
+        }
+
+        .cache-confirm-btn svg {
+            flex-shrink: 0;
+        }
+
+        /* Tooltip 提示 */
+        .tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 12px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-size: 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            pointer-events: none;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--text-primary);
+        }
+
+        .cache-confirm-btn:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 文本域 */
+        .form-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            resize: vertical;
+            transition: all 0.2s;
+        }
+
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        /* 状态提示 */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: var(--success-bg, #e6f4ea);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--success);
+            margin-top: 8px;
+        }
+
+        .status-badge.info {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* 确认对话框 */
+        .confirm-dialog {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: var(--bg-primary);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: var(--shadow-md);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.3s;
+            z-index: 50;
+        }
+
+        .confirm-dialog.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .confirm-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .confirm-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .confirm-actions .action-btn {
+            flex: 1;
+            padding: 8px 16px;
+            font-size: 13px;
+            justify-content: center;
+        }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-primary);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 9999;
+            min-width: 280px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .toast.success .toast-icon {
+            color: var(--success);
+        }
+
+        .toast-icon {
+            flex-shrink: 0;
+            width: 18px;
+            height: 18px;
+        }
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .confirm-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .confirm-actions .action-btn {
+            flex: 1;
+            padding: 8px 16px;
+            font-size: 13px;
+            justify-content: center;
+        }
+
+        /* 重新生成栏 */
+        .regen-bar {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .regen-bar.active {
+            display: block;
+        }
+
+        .regen-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            margin-bottom: 8px;
+        }
+
+        .regen-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .regen-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .regen-actions .action-btn {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">输入框交互演示</h1>
+            <p class="page-desc">展示输入框的智能填充、翻译、缓存确认等交互效果</p>
+        </div>
+
+        <!-- 场景1：空输入框 + 智能填充 -->
+        <div class="demo-section">
+            <h2 class="section-title">场景 1：空输入框</h2>
+            <p class="section-desc">点击输入框后，右侧出现填充和翻译按钮</p>
+
+            <div class="input-wrapper">
+                <label class="input-label">姓名</label>
+                <input type="text" class="form-input" placeholder="请输入姓名">
+                <div class="action-bar">
+                    <div class="dropdown">
+                        <button class="action-btn primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Z"/>
+                            </svg>
+                            填充
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Z"/>
+                                </svg>
+                                一键填充
+                            </div>
+                            <div class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                基于要求填充
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="2" width="6" height="20" rx="1"/>
+                                    <rect x="3" y="6" width="18" height="12" rx="1"/>
+                                </svg>
+                                填充整个表单
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="action-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            翻译
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">🇨🇳 简体中文</div>
+                            <div class="dropdown-item">🇭🇰 繁體中文</div>
+                            <div class="dropdown-item">🇬🇧 English</div>
+                            <div class="dropdown-item">🇯🇵 日本語</div>
+                            <div class="dropdown-item">🇰🇷 한국어</div>
+                            <div class="dropdown-item">🇪🇸 Español</div>
+                            <div class="dropdown-item">🇵🇹 Português</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 场景2：有缓存值的输入框 -->
+        <div class="demo-section">
+            <h2 class="section-title">场景 2：有缓存值</h2>
+            <p class="section-desc">输入框有缓存值时，显示为蓝色背景，点击后显示确认按钮</p>
+
+            <div class="input-wrapper">
+                <label class="input-label">邮箱</label>
+                <input type="email" class="form-input has-cache" id="cache-input" placeholder="缓存值：zhangsan@example.com">
+                <div class="action-bar">
+                    <button class="cache-confirm-btn" id="cache-confirm-btn" onclick="fillCachedValue()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <div class="tooltip">填充为: zhangsan@example.com</div>
+                    </button>
+                    <div class="dropdown">
+                        <button class="action-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 8l6 6"/><path d="M4 14l6-6 2-3"/><path d="M2 5h12"/><path d="M7 2v3"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/>
+                            </svg>
+                            翻译
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">🇨🇳 简体中文</div>
+                            <div class="dropdown-item">🇬🇧 English</div>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="action-btn primary">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                            </svg>
+                            填充
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                </svg>
+                                一键填充
+                            </div>
+                            <div class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                基于要求填充
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="9" y1="9" x2="15" y2="9"/>
+                                    <line x1="9" y1="13" x2="15" y2="13"/>
+                                    <line x1="9" y1="17" x2="13" y2="17"/>
+                                </svg>
+                                填充整个表单
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 场景3：已有内容的输入框 -->
+        <div class="demo-section">
+            <h2 class="section-title">场景 3：已有内容</h2>
+            <p class="section-desc">输入框已有内容时，填充前弹出确认对话框询问</p>
+
+            <div class="input-wrapper">
+                <label class="input-label">公司名称</label>
+                <input type="text" class="form-input" id="input-with-content" value="XX科技有限公司">
+                <div class="action-bar">
+                    <div class="dropdown">
+                        <button class="action-btn primary" onclick="showConfirmDialog('input-with-content')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                            </svg>
+                            填充
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item" onclick="showConfirmDialog('input-with-content')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                                </svg>
+                                一键填充
+                            </div>
+                            <div class="dropdown-item" onclick="showConfirmDialog('input-with-content')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                                基于要求填充
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="action-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            翻译
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">🇨🇳 简体中文</div>
+                            <div class="dropdown-item">🇬🇧 English</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 确认对话框 -->
+                <div class="confirm-dialog" id="confirm-dialog">
+                    <div class="confirm-title">当前输入框已有内容</div>
+                    <div class="confirm-text">
+                        是否基于现有内容进行修改？<br>
+                        • 点击"确定"基于现有内容修改<br>
+                        • 点击"取消"完全替换
+                    </div>
+                    <div class="confirm-actions">
+                        <button class="action-btn" onclick="fillWithReplace()">取消（替换）</button>
+                        <button class="action-btn primary" onclick="fillWithModify()">确定（修改）</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 场景4：多行文本框 + 重新生成 -->
+        <div class="demo-section">
+            <h2 class="section-title">场景 4：多行文本框</h2>
+            <p class="section-desc">AI 填充后，提供重新生成功能，可输入自定义要求</p>
+
+            <div class="input-wrapper">
+                <label class="input-label">个人简介</label>
+                <textarea class="form-textarea" id="textarea-demo" placeholder="请输入个人简介">我是一名拥有 5 年经验的前端工程师，精通 React、Vue 等现代前端框架，有丰富的大型项目开发经验。</textarea>
+                <div class="action-bar" style="opacity: 1; visibility: visible;">
+                    <div class="dropdown">
+                        <button class="action-btn primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Z"/>
+                            </svg>
+                            填充
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">一键填充</div>
+                            <div class="dropdown-item">基于要求填充</div>
+                        </div>
+                    </div>
+                    <button class="action-btn" onclick="toggleRegenBar()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"/>
+                            <polyline points="1 20 1 14 7 14"/>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                        </svg>
+                        重新生成
+                    </button>
+                    <div class="dropdown">
+                        <button class="action-btn">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="2" y1="12" x2="22" y2="12"/>
+                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                            </svg>
+                            翻译
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                        </button>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">🇨🇳 简体中文</div>
+                            <div class="dropdown-item">🇬🇧 English</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="regen-bar" id="regen-bar">
+                <input type="text" class="regen-input" placeholder="输入你的要求，例如：更专业、更简洁...">
+                <div class="regen-actions">
+                    <button class="action-btn" onclick="toggleRegenBar()">取消</button>
+                    <button class="action-btn primary" onclick="regenerateContent()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M5.497 3.997A1.225 1.225 0 0 0 4 5.494l1.264 4.79L2.58 14.45c-.508.79.024 1.834.962 1.887l4.946.278 3.132 3.838a1.225 1.225 0 0 0 2.091-.331l1.397-3.6 4.608 4.608a1 1 0 0 0 1.415-1.414l-4.608-4.608 3.599-1.397a1.225 1.225 0 0 0 .331-2.091l-3.838-3.133-.278-4.946a1.225 1.225 0 0 0-1.886-.96L10.287 5.26l-4.79-1.264Zm1.788 6.107L6.273 6.271l3.834 1.011c.332.088.686.032.976-.154l3.333-2.147.223 3.959c.019.343.182.662.448.88l3.072 2.507-3.696 1.435c-.32.124-.574.378-.699.698l-1.435 3.697-2.507-3.072a1.225 1.225 0 0 0-.88-.449l-3.959-.222L7.13 11.08a1.23 1.23 0 0 0 .155-.976"/>
+                        </svg>
+                        重新生成
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 场景5：输入框动效演示 -->
+        <div class="demo-section">
+            <h2 class="section-title">场景 5：输入框动效</h2>
+            <p class="section-desc">演示扫描、填充、成功、错误等状态的动效</p>
+
+            <div class="input-wrapper">
+                <label class="input-label">手机号</label>
+                <input type="tel" class="form-input" id="demo-input" placeholder="请输入手机号">
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px;">
+                <button class="action-btn" onclick="demoAnimation('scanning')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
+                    扫描动效
+                </button>
+                <button class="action-btn" onclick="demoAnimation('filling')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    填充动效
+                </button>
+                <button class="action-btn" onclick="demoAnimation('filled')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    成功动效
+                </button>
+                <button class="action-btn" onclick="demoAnimation('error')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                    错误动效
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div id="toast" class="toast">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span id="toast-message">操作成功</span>
+    </div>
+
+    <script>
+        // 显示 Toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const messageEl = document.getElementById('toast-message');
+            
+            messageEl.textContent = message;
+            toast.className = 'toast ' + type;
+            
+            // 显示 Toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            // 2秒后隐藏
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // 激活输入框 - 显示操作按钮
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                const wrapper = this.closest('.input-wrapper');
+                if (wrapper) {
+                    // 先清除其他输入框的激活状态
+                    document.querySelectorAll('.input-wrapper.active').forEach(w => {
+                        if (w !== wrapper) {
+                            w.classList.remove('active');
+                        }
+                    });
+                    wrapper.classList.add('active');
+                    
+                    // 如果是有缓存的输入框，显示缓存按钮
+                    if (this.classList.contains('has-cache')) {
+                        const cacheBtn = wrapper.querySelector('.cache-confirm-btn');
+                        if (cacheBtn) {
+                            cacheBtn.style.display = 'flex';
+                        }
+                    }
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                const wrapper = this.closest('.input-wrapper');
+                // 延迟取消激活，给用户时间点击按钮
+                setTimeout(() => {
+                    if (wrapper && !wrapper.matches(':hover') && !wrapper.querySelector('.confirm-dialog.active')) {
+                        wrapper.classList.remove('active');
+                        // 隐藏缓存按钮
+                        const cacheBtn = wrapper.querySelector('.cache-confirm-btn');
+                        if (cacheBtn) {
+                            cacheBtn.style.display = 'none';
+                        }
+                    }
+                }, 200);
+            });
+        });
+
+        // 保持激活状态当鼠标悬停在包装器上
+        document.querySelectorAll('.input-wrapper').forEach(wrapper => {
+            wrapper.addEventListener('mouseleave', function() {
+                const input = this.querySelector('.form-input');
+                const dialog = this.querySelector('.confirm-dialog');
+                if (input && !input.matches(':focus') && (!dialog || !dialog.classList.contains('active'))) {
+                    this.classList.remove('active');
+                    // 隐藏缓存按钮
+                    const cacheBtn = this.querySelector('.cache-confirm-btn');
+                    if (cacheBtn) {
+                        cacheBtn.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+        // 填充缓存值
+        function fillCachedValue() {
+            const input = document.getElementById('cache-input');
+            const wrapper = input.closest('.input-wrapper');
+            
+            // 添加填充动画
+            input.classList.add('filling');
+            
+            setTimeout(() => {
+                input.value = 'zhangsan@example.com';
+                input.classList.remove('filling');
+                input.classList.add('filled');
+                
+                showToast('已填充缓存值');
+                
+                // 0.5秒后移除 filled 状态，但保留 has-cache
+                setTimeout(() => {
+                    input.classList.remove('filled');
+                }, 500);
+            }, 300);
+        }
+
+        // 显示确认对话框
+        function showConfirmDialog(inputId) {
+            const dialog = document.getElementById('confirm-dialog');
+            dialog.classList.add('active');
+        }
+
+        // 基于现有内容修改
+        function fillWithModify() {
+            const input = document.getElementById('input-with-content');
+            const dialog = document.getElementById('confirm-dialog');
+            
+            dialog.classList.remove('active');
+            input.classList.add('filling');
+            
+            setTimeout(() => {
+                input.value = 'XX科技（深圳）有限公司';
+                input.classList.remove('filling');
+                input.classList.add('filled');
+                
+                showToast('AI 已填充完成');
+                
+                setTimeout(() => {
+                    input.classList.remove('filled');
+                }, 500);
+            }, 800);
+        }
+
+        // 完全替换
+        function fillWithReplace() {
+            const input = document.getElementById('input-with-content');
+            const dialog = document.getElementById('confirm-dialog');
+            
+            dialog.classList.remove('active');
+            input.classList.add('filling');
+            
+            setTimeout(() => {
+                input.value = '深圳市腾讯计算机系统有限公司';
+                input.classList.remove('filling');
+                input.classList.add('filled');
+                
+                showToast('AI 已填充完成');
+                
+                setTimeout(() => {
+                    input.classList.remove('filled');
+                }, 500);
+            }, 800);
+        }
+
+        // 切换重新生成栏
+        function toggleRegenBar() {
+            document.getElementById('regen-bar').classList.toggle('active');
+        }
+
+        // 重新生成内容
+        function regenerateContent() {
+            const textarea = document.getElementById('textarea-demo');
+            
+            textarea.classList.add('filling');
+            
+            setTimeout(() => {
+                textarea.value = '资深前端开发工程师，5年+互联网产品研发经验。精通 React、Vue 等主流前端框架，熟悉 TypeScript、Webpack 等现代前端技术栈。具备大型项目架构设计能力，注重代码质量和用户体验。';
+                textarea.classList.remove('filling');
+                textarea.classList.add('filled');
+                
+                showToast('AI 已重新生成完成');
+                
+                setTimeout(() => {
+                    textarea.classList.remove('filled');
+                }, 500);
+            }, 800);
+            
+            toggleRegenBar();
+        }
+
+        // 动效演示
+        function demoAnimation(type) {
+            const input = document.getElementById('demo-input');
+            
+            // 移除所有动效类
+            input.classList.remove('scanning', 'filling', 'filled', 'error');
+            
+            // 添加新动效
+            setTimeout(() => {
+                input.classList.add(type);
+                
+                // 自动移除动效
+                setTimeout(() => {
+                    input.classList.remove(type);
+                    
+                    // 如果是填充动效，自动填充内容
+                    if (type === 'filling') {
+                        setTimeout(() => {
+                            input.value = '13800138000';
+                            input.classList.add('filled');
+                            setTimeout(() => input.classList.remove('filled'), 500);
+                        }, 800);
+                    }
+                }, type === 'scanning' ? 1500 : type === 'filling' ? 800 : 500);
+            }, 10);
+        }
+    </script>
+</body>
+</html>

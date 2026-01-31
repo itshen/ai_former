@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Former - 设置</title>
+    <style>
+        :root {
+            --primary: #4285f4;
+            --primary-dark: #1967d2;
+            --primary-light: #e8f0fe;
+            --text-primary: #202124;
+            --text-secondary: #5f6368;
+            --text-tertiary: #80868b;
+            --border: #e8eaed;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-hover: #f1f3f4;
+            --success: #1e8e3e;
+            --success-bg: #e6f4ea;
+            --error: #d93025;
+            --shadow-sm: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+            --shadow-md: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #8ab4f8;
+                --primary-dark: #669df6;
+                --primary-light: #1a3a5c;
+                --text-primary: #e8eaed;
+                --text-secondary: #9aa0a6;
+                --text-tertiary: #80868b;
+                --border: #3c4043;
+                --bg-primary: #202124;
+                --bg-secondary: #292a2d;
+                --bg-hover: #35363a;
+                --success: #81c995;
+                --success-bg: #1e3a28;
+                --error: #f28b82;
+                --shadow-sm: 0 1px 2px 0 rgba(0,0,0,.3), 0 1px 3px 1px rgba(0,0,0,.15);
+                --shadow-md: 0 1px 3px 0 rgba(0,0,0,.3), 0 4px 8px 3px rgba(0,0,0,.15);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 32px;
+        }
+
+        /* 页头 */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .page-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* 导航标签 */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* 内容区 */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 卡片 */
+        .card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* 表单 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        .label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input, .select, .textarea {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            transition: all 0.2s;
+        }
+
+        .input:focus, .select:focus, .textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            resize: vertical;
+            min-height: 140px;
+            line-height: 1.6;
+            transition: all 0.2s;
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%235f6368' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        /* 按钮 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--error);
+            border: 1px solid var(--error);
+        }
+
+        .btn-danger:hover {
+            background: rgba(217, 48, 37, 0.1);
+        }
+
+        /* 功能配置项 */
+        .feature-item {
+            padding: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .feature-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .feature-models {
+            display: flex;
+            gap: 8px;
+        }
+
+        .feature-models .select {
+            font-size: 12px;
+            padding: 6px 32px 6px 10px;
+            background-color: var(--bg-primary);
+        }
+
+        .feature-models .select:first-child {
+            width: 140px;
+        }
+
+        .feature-models .select:last-child {
+            width: 160px;
+        }
+
+        .feature-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .feature-actions .btn {
+            padding: 7px 16px;
+            font-size: 13px;
+        }
+
+        /* 知识库列表 */
+        .knowledge-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .knowledge-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .knowledge-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .knowledge-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .knowledge-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .knowledge-meta {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .knowledge-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .icon-btn.danger:hover {
+            background: rgba(217, 48, 37, 0.1);
+            color: var(--error);
+        }
+
+        /* 映射列表 */
+        .mapping-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .mapping-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .mapping-info {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .mapping-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .mapping-field .label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .mapping-name {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .mapping-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .knowledge-action-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .knowledge-action-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .mapping-info {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 日志列表 */
+        .log-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .log-site {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .log-time {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .log-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .log-field {
+            padding: 4px 8px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .log-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .log-action {
+            font-size: 12px;
+            color: var(--primary);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .log-action:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* 使用表格 */
+        .usage-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .usage-table th {
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .usage-table td {
+            padding: 14px 12px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .usage-table tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .model-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .usage-tokens {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .usage-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .usage-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            background: var(--bg-primary);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.visible .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+            max-height: calc(90vh - 140px);
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* 响应式设计 - 窄屏优化 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px 16px;
+            }
+
+            .page-title {
+                font-size: 24px;
+            }
+
+            .nav-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+
+            .nav-tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+            .nav-tab {
+                padding: 10px 16px;
+                font-size: 13px;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .card-title {
+                font-size: 15px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-models {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .feature-models .select {
+                width: 100%;
+            }
+
+            .usage-table {
+                font-size: 12px;
+            }
+
+            .usage-table th,
+            .usage-table td {
+                padding: 10px 8px;
+            }
+
+            .usage-bar {
+                width: 100px !important;
+            }
+
+            .log-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .log-fields {
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .log-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        /* 超窄屏优化 (侧边栏宽度) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px 12px;
+            }
+
+            .page-header {
+                margin-bottom: 20px;
+            }
+
+            .page-title {
+                font-size: 20px;
+            }
+
+            .page-desc {
+                font-size: 12px;
+            }
+
+            .nav-tabs {
+                gap: 4px;
+                margin-bottom: 20px;
+            }
+
+            .nav-tab {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .card {
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+
+            .card-title {
+                font-size: 14px;
+                margin-bottom: 12px;
+            }
+
+            .card-desc {
+                font-size: 12px;
+                margin-bottom: 16px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+            }
+
+            .form-group {
+                margin-bottom: 12px;
+            }
+
+            .label {
+                font-size: 12px;
+                margin-bottom: 6px;
+            }
+
+            .input,
+            .select,
+            .textarea {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            .btn {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .feature-item {
+                padding: 12px;
+            }
+
+            .feature-header {
+                margin-bottom: 10px;
+            }
+
+            .feature-name {
+                font-size: 13px;
+            }
+
+            .textarea {
+                min-height: 100px;
+                font-size: 12px;
+            }
+
+            .knowledge-item {
+                padding: 10px;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .knowledge-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .log-item {
+                padding: 10px;
+            }
+
+            .log-site,
+            .log-time,
+            .log-field,
+            .log-action {
+                font-size: 11px;
+            }
+
+            /* 表格在窄屏下横向滚动 */
+            .card > div[style*="overflow-x"] {
+                margin: 0 -12px;
+                padding: 0 12px;
+            }
+
+            .usage-table {
+                font-size: 11px;
+            }
+
+            .usage-table th,
+            .usage-table td {
+                padding: 8px 6px;
+            }
+
+            .usage-bar {
+                width: 60px !important;
+            }
+
+            .model-name {
+                font-size: 11px;
+            }
+
+            /* 模态框 */
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+
+            .modal-body {
+                padding: 16px;
+            }
+
+            .modal-footer {
+                padding: 12px 16px;
+                flex-direction: column-reverse;
+            }
+
+            .modal-footer .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页头 -->
+        <div class="page-header">
+            <h1 class="page-title">设置</h1>
+            <p class="page-desc">配置 AI Former 的模型、提示词、知识库等</p>
+        </div>
+
+        <!-- 导航标签 -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('model')">模型配置</button>
+            <button class="nav-tab" onclick="switchTab('features')">功能配置</button>
+            <button class="nav-tab" onclick="switchTab('knowledge')">知识库</button>
+            <button class="nav-tab" onclick="switchTab('mapping')">字段映射</button>
+            <button class="nav-tab" onclick="switchTab('logs')">填充记录</button>
+            <button class="nav-tab" onclick="switchTab('tokens')">Token 统计</button>
+        </div>
+
+        <!-- 模型配置 -->
+        <div class="tab-content active" id="tab-model">
+            <div class="card">
+                <h2 class="card-title">默认模型</h2>
+                <p class="card-desc">设置全局默认使用的 AI 模型，可在功能配置中为单个功能指定不同模型</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="label">模型提供商</label>
+                        <select class="select">
+                            <option>OpenAI</option>
+                            <option>通义千问</option>
+                            <option>智谱AI</option>
+                            <option>DeepSeek</option>
+                            <option>硅基流动</option>
+                            <option>火山引擎</option>
+                            <option>Ollama (本地)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">模型</label>
+                        <select class="select">
+                            <option>gpt-4o-mini</option>
+                            <option>gpt-4o</option>
+                            <option>gpt-4-turbo</option>
+                        </select>
+                    </div>
+                    <div class="form-group full">
+                        <label class="label">API Key</label>
+                        <input type="text" class="input" placeholder="sk-..." value="sk-proj-xxxxxxxxxxxxxxxxxxxx">
+                    </div>
+                </div>
+                <button class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    保存配置
+                </button>
+            </div>
+        </div>
+
+        <!-- 功能配置 -->
+        <div class="tab-content" id="tab-features">
+            <div class="card">
+                <h2 class="card-title">全局设置</h2>
+                <p class="card-desc">一键将所有功能的模型设置为同一个</p>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="label">提供商</label>
+                        <select class="select">
+                            <option>OpenAI</option>
+                            <option>通义千问</option>
+                            <option>智谱AI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="label">模型</label>
+                        <select class="select">
+                            <option>gpt-4o-mini</option>
+                            <option>gpt-4o</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary">应用到所有功能</button>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">功能列表</h2>
+                <p class="card-desc">为每个功能配置专属的模型和提示词</p>
+                
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <span class="feature-name">表单填充</span>
+                        <div class="feature-models">
+                            <select class="select">
+                                <option>OpenAI</option>
+                                <option>通义千问</option>
+                            </select>
+                            <select class="select">
+                                <option>gpt-4o-mini</option>
+                                <option>gpt-4o</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea class="textarea">你是一个智能表单填充助手。根据用户提供的信息和知识库内容，为表单字段生成合适的填充值。
+
+输入：表单字段列表、用户要求、知识库内容
+输出：XML 格式的填充结果
+
+请确保：
+1. 填充内容准确、合理
+2. 遵循字段的格式要求
+3. 如有不确定的字段，可以留空</textarea>
+                    <div class="feature-actions">
+                        <button class="btn btn-secondary">重置</button>
+                        <button class="btn btn-primary">保存</button>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <span class="feature-name">翻译功能</span>
+                        <div class="feature-models">
+                            <select class="select">
+                                <option>使用默认模型</option>
+                                <option>OpenAI</option>
+                            </select>
+                            <select class="select">
+                                <option>gpt-4o-mini</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea class="textarea">请将以下内容翻译成 {target_language}，保持原文的语气和风格：
+
+{content}</textarea>
+                    <div class="feature-actions">
+                        <button class="btn btn-secondary">重置</button>
+                        <button class="btn btn-primary">保存</button>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-header">
+                        <span class="feature-name">知识库 Summary</span>
+                        <div class="feature-models">
+                            <select class="select">
+                                <option>使用默认模型</option>
+                            </select>
+                            <select class="select">
+                                <option>gpt-4o-mini</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea class="textarea">请为以下内容生成一个简洁的摘要，用于后续的知识检索：
+
+{content}
+
+摘要要求：
+- 提取关键信息（姓名、职业、技能等）
+- 不超过 200 字
+- 使用关键词列表形式</textarea>
+                    <div class="feature-actions">
+                        <button class="btn btn-secondary">重置</button>
+                        <button class="btn btn-primary">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 知识库 -->
+        <div class="tab-content" id="tab-knowledge">
+            <div class="card">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                    <div>
+                        <h2 class="card-title" style="margin-bottom: 4px;">我的档案</h2>
+                        <p class="card-desc" style="margin: 0;">管理你的个人信息档案，AI 会根据这些档案填充表单</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openKnowledgeModal('new')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        新建档案
+                    </button>
+                </div>
+
+                <div class="knowledge-list">
+                    <div class="knowledge-item">
+                        <div class="knowledge-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        <div class="knowledge-info">
+                            <div class="knowledge-name">个人简历档案</div>
+                            <div class="knowledge-meta">包含基本信息、教育背景、工作经历 · 更新于 2 小时前</div>
+                        </div>
+                        <div class="knowledge-actions">
+                            <button class="icon-btn" onclick="openKnowledgeModal('resume')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                            <button class="icon-btn danger">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="knowledge-item">
+                        <div class="knowledge-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                            </svg>
+                        </div>
+                        <div class="knowledge-info">
+                            <div class="knowledge-name">公司信息档案</div>
+                            <div class="knowledge-meta">公司名称、地址、联系方式 · 更新于 3 天前</div>
+                        </div>
+                        <div class="knowledge-actions">
+                            <button class="icon-btn" onclick="openKnowledgeModal('company')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                            </button>
+                            <button class="icon-btn danger">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 字段映射 -->
+        <div class="tab-content" id="tab-mapping">
+            <div class="card">
+                <h2 class="card-title">字段映射管理</h2>
+                <p class="card-desc">配置表单字段与填充内容的映射关系，用于快速填充功能。AI 会自动匹配相似的字段名</p>
+                
+                <button class="btn btn-primary" style="margin-bottom: 20px;" onclick="openMappingModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v6m0 6v6"/>
+                    </svg>
+                    新增映射
+                </button>
+
+                <div class="mapping-list">
+                    <div class="mapping-item">
+                        <div class="mapping-info">
+                            <div class="mapping-field">
+                                <span class="label">内容值</span>
+                                <span class="mapping-value">张明</span>
+                            </div>
+                            <div class="mapping-field">
+                                <span class="label">字段类型（多个用 / 分隔）</span>
+                                <span class="mapping-name">姓名 / 真实姓名 / 用户名 / Name</span>
+                            </div>
+                        </div>
+                        <div class="knowledge-actions">
+                            <button class="knowledge-action-btn" onclick="editMapping('张明', '姓名 / 真实姓名 / 用户名 / Name')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                    <path d="m15 5 4 4"/>
+                                </svg>
+                            </button>
+                            <button class="knowledge-action-btn" style="color: var(--error);">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"/>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                    <line x1="10" x2="10" y1="11" y2="17"/>
+                                    <line x1="14" x2="14" y1="11" y2="17"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mapping-item">
+                        <div class="mapping-info">
+                            <div class="mapping-field">
+                                <span class="label">内容值</span>
+                                <span class="mapping-value">zhangming@example.com</span>
+                            </div>
+                            <div class="mapping-field">
+                                <span class="label">字段类型（多个用 / 分隔）</span>
+                                <span class="mapping-name">邮箱 / Email / 电子邮件 / E-mail</span>
+                            </div>
+                        </div>
+                        <div class="knowledge-actions">
+                            <button class="knowledge-action-btn" onclick="editMapping('zhangming@example.com', '邮箱 / Email / 电子邮件 / E-mail')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                    <path d="m15 5 4 4"/>
+                                </svg>
+                            </button>
+                            <button class="knowledge-action-btn" style="color: var(--error);">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"/>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                    <line x1="10" x2="10" y1="11" y2="17"/>
+                                    <line x1="14" x2="14" y1="11" y2="17"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mapping-item">
+                        <div class="mapping-info">
+                            <div class="mapping-field">
+                                <span class="label">内容值</span>
+                                <span class="mapping-value">13800138000</span>
+                            </div>
+                            <div class="mapping-field">
+                                <span class="label">字段类型（多个用 / 分隔）</span>
+                                <span class="mapping-name">手机号 / 电话 / 联系方式 / Phone / Mobile</span>
+                            </div>
+                        </div>
+                        <div class="knowledge-actions">
+                            <button class="knowledge-action-btn" onclick="editMapping('13800138000', '手机号 / 电话 / 联系方式 / Phone / Mobile')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                    <path d="m15 5 4 4"/>
+                                </svg>
+                            </button>
+                            <button class="knowledge-action-btn" style="color: var(--error);">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"/>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                    <line x1="10" x2="10" y1="11" y2="17"/>
+                                    <line x1="14" x2="14" y1="11" y2="17"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mapping-item">
+                        <div class="mapping-info">
+                            <div class="mapping-field">
+                                <span class="label">内容值</span>
+                                <span class="mapping-value">金山办公</span>
+                            </div>
+                            <div class="mapping-field">
+                                <span class="label">字段类型（多个用 / 分隔）</span>
+                                <span class="mapping-name">公司 / 单位 / 工作单位 / Company</span>
+                            </div>
+                        </div>
+                        <div class="knowledge-actions">
+                            <button class="knowledge-action-btn" onclick="editMapping('金山办公', '公司 / 单位 / 工作单位 / Company')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                    <path d="m15 5 4 4"/>
+                                </svg>
+                            </button>
+                            <button class="knowledge-action-btn" style="color: var(--error);">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 6h18"/>
+                                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                    <line x1="10" x2="10" y1="11" y2="17"/>
+                                    <line x1="14" x2="14" y1="11" y2="17"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 24px; background: var(--primary-light); border-color: var(--primary);">
+                    <h3 style="font-size: 14px; margin-bottom: 8px; color: var(--text-primary);">💡 映射逻辑说明</h3>
+                    <ul style="font-size: 13px; color: var(--text-secondary); line-height: 1.8; padding-left: 20px;">
+                        <li><strong>内容值</strong>：你要填充的实际内容（如：张明、zhangming@example.com）</li>
+                        <li><strong>字段类型</strong>：表单中可能出现的字段名称（如：姓名 / Name / 用户名）</li>
+                        <li><strong>工作原理</strong>：当遇到匹配的字段类型时，自动填充对应的内容值</li>
+                        <li><strong>匹配优先级</strong>：精确匹配 > 模糊匹配 > 字段类型匹配（email、tel、url 等）</li>
+                        <li><strong>支持中英文</strong>：字段类型可包含中英文别名，AI 会自动识别</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 填充记录 -->
+        <div class="tab-content" id="tab-logs">
+            <div class="card">
+                <h2 class="card-title">最近记录</h2>
+                <p class="card-desc">查看最近的表单填充记录，可保存为知识库</p>
+                
+                <div class="log-list">
+                    <div class="log-item">
+                        <div class="log-header">
+                            <span class="log-site">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="2" y1="12" x2="22" y2="12"/>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                                </svg>
+                                zhaopin.com
+                            </span>
+                            <span class="log-time">今天 14:32</span>
+                        </div>
+                        <div class="log-fields">
+                            <span class="log-field">姓名: 张三</span>
+                            <span class="log-field">手机: 138****8000</span>
+                            <span class="log-field">邮箱: zhang***@example.com</span>
+                            <span class="log-field">+8 个字段</span>
+                        </div>
+                        <div class="log-actions">
+                            <span class="log-action">查看详情</span>
+                            <span class="log-action" style="color: var(--success);">保存为知识</span>
+                            <span class="log-action" style="color: var(--error);">删除</span>
+                        </div>
+                    </div>
+
+                    <div class="log-item">
+                        <div class="log-header">
+                            <span class="log-site">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="2" y1="12" x2="22" y2="12"/>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                                </svg>
+                                lagou.com
+                            </span>
+                            <span class="log-time">今天 11:15</span>
+                        </div>
+                        <div class="log-fields">
+                            <span class="log-field">个人简介 [已改写]</span>
+                            <span class="log-field">工作经历: ...</span>
+                            <span class="log-field">+5 个字段</span>
+                        </div>
+                        <div class="log-actions">
+                            <span class="log-action">查看详情</span>
+                            <span class="log-action" style="color: var(--success);">保存为知识</span>
+                            <span class="log-action" style="color: var(--error);">删除</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token 统计 -->
+        <div class="tab-content" id="tab-tokens">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">12.5K</div>
+                    <div class="stat-label">今日消耗</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">89.3K</div>
+                    <div class="stat-label">本月消耗</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$0.89</div>
+                    <div class="stat-label">预估费用</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">使用明细</h2>
+                <p class="card-desc">查看各模型的 Token 消耗和费用</p>
+                
+                <table class="usage-table">
+                    <thead>
+                        <tr>
+                            <th>模型</th>
+                            <th>输入/输出</th>
+                            <th>消耗</th>
+                            <th>费用</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="model-name">gpt-4o-mini</td>
+                            <td style="color: var(--text-secondary); font-size: 12px;">6,200 / 2,030</td>
+                            <td>
+                                <div class="usage-tokens">
+                                    <span style="color: var(--text-secondary); font-size: 12px; width: 80px;">8,230</span>
+                                    <div class="usage-bar" style="width: 200px;">
+                                        <div class="usage-fill" style="width: 66%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="color: var(--text-secondary);">$0.0023</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Claude Sonnet 4.5</td>
+                            <td style="color: var(--text-secondary); font-size: 12px;">2,100 / 1,020</td>
+                            <td>
+                                <div class="usage-tokens">
+                                    <span style="color: var(--text-secondary); font-size: 12px; width: 80px;">3,120</span>
+                                    <div class="usage-bar" style="width: 200px;">
+                                        <div class="usage-fill" style="width: 25%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="color: var(--text-secondary);">$0.0216</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">qwen-long</td>
+                            <td style="color: var(--text-secondary); font-size: 12px;">800 / 300</td>
+                            <td>
+                                <div class="usage-tokens">
+                                    <span style="color: var(--text-secondary); font-size: 12px; width: 80px;">1,100</span>
+                                    <div class="usage-bar" style="width: 200px;">
+                                        <div class="usage-fill" style="width: 9%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="color: var(--text-secondary);">$0.0004</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">模型报价参考</h2>
+                <p class="card-desc">基于 OpenRouter 的报价预估（单位：$/M tokens）</p>
+                
+                <div style="overflow-x: auto;">
+                    <table class="usage-table">
+                        <thead>
+                            <tr>
+                                <th>厂商</th>
+                                <th>模型名称</th>
+                                <th style="text-align: right;">输入</th>
+                                <th style="text-align: right;">输出</th>
+                                <th>核心定位/优势领域</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Anthropic</td><td class="model-name">Claude Opus 4.5</td><td style="text-align: right;">$5.00</td><td style="text-align: right;">$25.00</td><td style="color: var(--text-tertiary); font-size: 12px;">顶配模型，长航时研究与复杂软工Agent</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Anthropic</td><td class="model-name">Claude Sonnet 4.5</td><td style="text-align: right;">$3.00</td><td style="text-align: right;">$15.00</td><td style="color: var(--text-tertiary); font-size: 12px;">编程与系统设计#1，实时Agent优化</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Anthropic</td><td class="model-name">Claude Sonnet 4</td><td style="text-align: right;">$3.00</td><td style="text-align: right;">$15.00</td><td style="color: var(--text-tertiary); font-size: 12px;">稳健型中坚模型，高指令遵循度</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Anthropic</td><td class="model-name">Claude Haiku 4.5</td><td style="text-align: right;">$1.00</td><td style="text-align: right;">$5.00</td><td style="color: var(--text-tertiary); font-size: 12px;">极速推理，高性价比子Agent节点</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Anthropic</td><td class="model-name">Claude 3.5 Haiku</td><td style="text-align: right;">$0.80</td><td style="text-align: right;">$4.00</td><td style="color: var(--text-tertiary); font-size: 12px;">经典款快速响应模型</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-5.2</td><td style="text-align: right;">$1.75</td><td style="text-align: right;">$14.00</td><td style="color: var(--text-tertiary); font-size: 12px;">全能旗舰，动态计算分配技术</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-5.2-Codex</td><td style="text-align: right;">$1.75</td><td style="text-align: right;">$14.00</td><td style="color: var(--text-tertiary); font-size: 12px;">深度软工专用，支持多小时持续执行</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-5.2 Chat</td><td style="text-align: right;">$1.75</td><td style="text-align: right;">$14.00</td><td style="color: var(--text-tertiary); font-size: 12px;">低延迟对话版，优化了暖色调沟通风格</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-5.1</td><td style="text-align: right;">$1.25</td><td style="text-align: right;">$10.00</td><td style="color: var(--text-tertiary); font-size: 12px;">标准旗舰，强化了数学与结构化分析</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-5</td><td style="text-align: right;">$1.25</td><td style="text-align: right;">$10.00</td><td style="color: var(--text-tertiary); font-size: 12px;">逻辑基准模型，有效减少幻觉</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-5 Chat</td><td style="text-align: right;">$1.25</td><td style="text-align: right;">$10.00</td><td style="color: var(--text-tertiary); font-size: 12px;">企业级上下文敏感型对话</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-4.1</td><td style="text-align: right;">$2.00</td><td style="text-align: right;">$8.00</td><td style="color: var(--text-tertiary); font-size: 12px;">长上下文指令遵循与精细代码Diff</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-5 Mini</td><td style="text-align: right;">$0.25</td><td style="text-align: right;">$2.00</td><td style="color: var(--text-tertiary); font-size: 12px;">轻量推理，o4-mini继任者</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-4.1 Mini</td><td style="text-align: right;">$0.40</td><td style="text-align: right;">$1.60</td><td style="color: var(--text-tertiary); font-size: 12px;">交互式应用，兼顾视觉理解</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">gpt-4o-mini</td><td style="text-align: right;">$0.15</td><td style="text-align: right;">$0.60</td><td style="color: var(--text-tertiary); font-size: 12px;">经典小模型，多模态支持</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-5 Nano</td><td style="text-align: right;">$0.05</td><td style="text-align: right;">$0.40</td><td style="color: var(--text-tertiary); font-size: 12px;">极速端侧/分类任务专用</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">GPT-4.1 Nano</td><td style="text-align: right;">$0.10</td><td style="text-align: right;">$0.40</td><td style="color: var(--text-tertiary); font-size: 12px;">极低延迟，逻辑能力超4o-mini</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">gpt-oss-120b</td><td style="text-align: right;">$0.039</td><td style="text-align: right;">$0.19</td><td style="color: var(--text-tertiary); font-size: 12px;">开放权重MoE，支持H100单卡运行</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">OpenAI</td><td class="model-name">gpt-oss-20b</td><td style="text-align: right;">$0.02</td><td style="text-align: right;">$0.10</td><td style="color: var(--text-tertiary); font-size: 12px;">极致低延迟开放权重模型</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Google</td><td class="model-name">Gemini 3 Pro Preview</td><td style="text-align: right;">$2.00</td><td style="text-align: right;">$12.00</td><td style="color: var(--text-tertiary); font-size: 12px;">旗舰多模态推理，科学与STEM领先</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Google</td><td class="model-name">Gemini 3 Flash Preview</td><td style="text-align: right;">$0.50</td><td style="text-align: right;">$3.00</td><td style="color: var(--text-tertiary); font-size: 12px;">交互式开发，1M窗口下低延迟推理</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Google</td><td class="model-name">Gemini 2.5 Flash</td><td style="text-align: right;">$0.30</td><td style="text-align: right;">$2.50</td><td style="color: var(--text-tertiary); font-size: 12px;">法律与学术工作马模型，支持思维链配置</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Google</td><td class="model-name">Gemini 2.5 Flash-Lite</td><td style="text-align: right;">$0.10</td><td style="text-align: right;">$0.40</td><td style="color: var(--text-tertiary); font-size: 12px;">极致成本模型，营销与翻译首选</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Google</td><td class="model-name">Gemini 2.0 Flash</td><td style="text-align: right;">$0.10</td><td style="text-align: right;">$0.40</td><td style="color: var(--text-tertiary); font-size: 12px;">经典款（2026年3月下线❓）</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Google</td><td class="model-name">Gemini 2.0 Flash Lite</td><td style="text-align: right;">$0.075</td><td style="text-align: right;">$0.30</td><td style="color: var(--text-tertiary); font-size: 12px;">极低单价（2026年3月下线❓）</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">DeepSeek</td><td class="model-name">DeepSeek V3.2</td><td style="text-align: right;">$0.25</td><td style="text-align: right;">$0.38</td><td style="color: var(--text-tertiary); font-size: 12px;">稀疏注意力DSA技术，Agent兼容性极强</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">DeepSeek</td><td class="model-name">DeepSeek V3.2 Exp</td><td style="text-align: right;">$0.21</td><td style="text-align: right;">$0.32</td><td style="color: var(--text-tertiary); font-size: 12px;">实验性模型，验证长上下文架构优化</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">DeepSeek</td><td class="model-name">DeepSeek V3.1</td><td style="text-align: right;">$0.15</td><td style="text-align: right;">$0.75</td><td style="color: var(--text-tertiary); font-size: 12px;">混合推理模式，强化搜索Agent场景</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">DeepSeek</td><td class="model-name">DeepSeek V3</td><td style="text-align: right;">$0.30</td><td style="text-align: right;">$1.20</td><td style="color: var(--text-tertiary); font-size: 12px;">高指令遵循基础款</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">xAI</td><td class="model-name">Grok 4.1 Fast</td><td style="text-align: right;">$0.20</td><td style="text-align: right;">$0.50</td><td style="color: var(--text-tertiary); font-size: 12px;">2M上下文，深色研究与客服优化</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">xAI</td><td class="model-name">Grok 4 Fast</td><td style="text-align: right;">$0.20</td><td style="text-align: right;">$0.50</td><td style="color: var(--text-tertiary); font-size: 12px;">成本效率型多模态模型</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">xAI</td><td class="model-name">Grok 3 Mini</td><td style="text-align: right;">$0.30</td><td style="text-align: right;">$0.50</td><td style="color: var(--text-tertiary); font-size: 12px;">轻量思考模型，公开原生思维链</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">xAI</td><td class="model-name">Grok Code Fast 1</td><td style="text-align: right;">$0.20</td><td style="text-align: right;">$1.50</td><td style="color: var(--text-tertiary); font-size: 12px;">专攻Agent编码，响应含推理轨迹</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Meta</td><td class="model-name">Llama 4 Maverick</td><td style="text-align: right;">$0.15</td><td style="text-align: right;">$0.60</td><td style="color: var(--text-tertiary); font-size: 12px;">400B MoE架构，视觉推理表现优秀</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Meta</td><td class="model-name">Llama 3.3 70B</td><td style="text-align: right;">$0.10</td><td style="text-align: right;">$0.32</td><td style="color: var(--text-tertiary); font-size: 12px;">经典开源多语言对齐模型</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Moonshot</td><td class="model-name">Kimi K2.5</td><td style="text-align: right;">$0.50</td><td style="text-align: right;">$2.80</td><td style="color: var(--text-tertiary); font-size: 12px;">原生多模态，视觉编码表现突出</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Moonshot</td><td class="model-name">Kimi K2 Thinking</td><td style="text-align: right;">$0.40</td><td style="text-align: right;">$1.75</td><td style="color: var(--text-tertiary); font-size: 12px;">支撑200+步工具调用的长航时Agent</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Moonshot</td><td class="model-name">Kimi K2 0905</td><td style="text-align: right;">$0.39</td><td style="text-align: right;">$1.90</td><td style="color: var(--text-tertiary); font-size: 12px;">前端编码美学优化版本</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Qwen</td><td class="model-name">Qwen3-Coder 480B</td><td style="text-align: right;">$0.22</td><td style="text-align: right;">$0.95</td><td style="color: var(--text-tertiary); font-size: 12px;">工具库级别长上下文编程模型</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Qwen</td><td class="model-name">Qwen3-235B-A22B</td><td style="text-align: right;">$0.071</td><td style="text-align: right;">$0.463</td><td style="color: var(--text-tertiary); font-size: 12px;">强化数学与多语言对齐</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Qwen</td><td class="model-name">Qwen3 32B</td><td style="text-align: right;">$0.08</td><td style="text-align: right;">$0.24</td><td style="color: var(--text-tertiary); font-size: 12px;">灵活切换思考模式，支持YaRN扩容</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Qwen</td><td class="model-name">Qwen3-VL-235B</td><td style="text-align: right;">$0.20</td><td style="text-align: right;">$1.20</td><td style="color: var(--text-tertiary); font-size: 12px;">统一视觉理解与代码生成</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Z.AI (智谱)</td><td class="model-name">GLM 4.7</td><td style="text-align: right;">$0.40</td><td style="text-align: right;">$1.50</td><td style="color: var(--text-tertiary); font-size: 12px;">增强前端审美与多步推理执行稳定性</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Z.AI (智谱)</td><td class="model-name">GLM 4.6</td><td style="text-align: right;">$0.35</td><td style="text-align: right;">$1.50</td><td style="color: var(--text-tertiary); font-size: 12px;">强化搜索型Agent和工具链适配</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Z.AI (智谱)</td><td class="model-name">GLM 4.7 Flash</td><td style="text-align: right;">$0.07</td><td style="text-align: right;">$0.40</td><td style="color: var(--text-tertiary); font-size: 12px;">30B级别SOTA效率平衡点</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Z.AI (智谱)</td><td class="model-name">GLM 4.5 Air</td><td style="text-align: right;">$0.05</td><td style="text-align: right;">$0.22</td><td style="color: var(--text-tertiary); font-size: 12px;">Agent专用轻量MoE模型</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">MiniMax</td><td class="model-name">MiniMax M2.1</td><td style="text-align: right;">$0.27</td><td style="text-align: right;">$1.10</td><td style="color: var(--text-tertiary); font-size: 12px;">10B激活参数，高频IDE助手首选</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">MiniMax</td><td class="model-name">MiniMax M2</td><td style="text-align: right;">$0.20</td><td style="text-align: right;">$1.00</td><td style="color: var(--text-tertiary); font-size: 12px;">强化长程规划与错误修复反馈循环</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Xiaomi</td><td class="model-name">MiMo-V2-Flash</td><td style="text-align: right;">$0.09</td><td style="text-align: right;">$0.29</td><td style="color: var(--text-tertiary); font-size: 12px;">全球顶级性价比开源模型，对标Sonnet 4.5</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">ByteDance</td><td class="model-name">Seed 1.6</td><td style="text-align: right;">$0.25</td><td style="text-align: right;">$2.00</td><td style="color: var(--text-tertiary); font-size: 12px;">字节跳动通用模型，自适应深度思考</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Mistral</td><td class="model-name">Mistral Large 3</td><td style="text-align: right;">$0.50</td><td style="text-align: right;">$1.50</td><td style="color: var(--text-tertiary); font-size: 12px;">高性能开源替代，41B激活参数</td></tr>
+                            <tr><td style="color: var(--text-secondary); font-weight: 600;">Mistral</td><td class="model-name">Mistral Nemo</td><td style="text-align: right;">$0.02</td><td style="text-align: right;">$0.04</td><td style="color: var(--text-tertiary); font-size: 12px;">12B参数多语言，Apache 2.0协议</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 知识库编辑模态框 -->
+    <div class="modal-overlay" id="knowledge-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-title">编辑档案</span>
+                <button class="modal-close" onclick="closeKnowledgeModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="label">档案名称</label>
+                    <input type="text" class="input" id="modal-name" placeholder="例如：个人简历档案">
+                </div>
+                <div class="form-group">
+                    <label class="label">档案内容（纯文本）</label>
+                    <textarea class="textarea" id="modal-content" style="min-height: 300px; font-family: inherit;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeKnowledgeModal()">取消</button>
+                <button class="btn btn-primary">保存档案</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑字段映射模态框 -->
+    <div class="modal-overlay" id="mapping-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title" id="mapping-modal-title">编辑字段映射</span>
+                <button class="modal-close" onclick="closeMappingModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label class="label">内容值</label>
+                    <input type="text" class="input" id="mapping-value" placeholder="例如：张明">
+                    <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 6px;">
+                        你要填充的实际内容（支持中英文）
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label class="label">字段类型（多个用 / 分隔）</label>
+                    <input type="text" class="input" id="mapping-field" placeholder="例如：姓名 / 真实姓名 / 用户名 / Name">
+                    <p style="font-size: 12px; color: var(--text-tertiary); margin-top: 6px;">
+                        💡 支持多个别名，AI 会自动匹配相似的字段名。用中英文斜杠 / 分隔不同的名称
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeMappingModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveMappingModal()">保存映射</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            // 更新标签状态
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 更新内容
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        function openKnowledgeModal(type) {
+            const modal = document.getElementById('knowledge-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalName = document.getElementById('modal-name');
+            const modalContent = document.getElementById('modal-content');
+            
+            if (type === 'new') {
+                modalTitle.textContent = '新建档案';
+                modalName.value = '';
+                modalContent.value = '';
+            } else if (type === 'resume') {
+                modalTitle.textContent = '编辑档案';
+                modalName.value = '个人简历档案';
+                modalContent.value = `姓名：张三
+英文名：Zhang San
+性别：男
+出生日期：1994-05-15
+手机：13800138000
+邮箱：zhangsan@example.com
+
+教育背景：
+- 2012-2016 北京大学 计算机科学与技术 本科
+- 2016-2019 清华大学 软件工程 硕士
+
+工作经历：
+- 2019-2022 阿里巴巴 高级前端工程师
+- 2022-至今 字节跳动 技术专家
+
+技能：JavaScript, TypeScript, React, Vue, Node.js`;
+            } else if (type === 'company') {
+                modalTitle.textContent = '编辑档案';
+                modalName.value = '公司信息档案';
+                modalContent.value = `公司名称：XX科技有限公司
+公司地址：北京市朝阳区xxx路xxx号
+联系电话：010-12345678
+企业邮箱：contact@example.com`;
+            }
+            
+            modal.classList.add('visible');
+        }
+
+        function closeKnowledgeModal() {
+            document.getElementById('knowledge-modal').classList.remove('visible');
+        }
+
+        function openMappingModal() {
+            const modal = document.getElementById('mapping-modal');
+            const modalTitle = document.getElementById('mapping-modal-title');
+            const valueInput = document.getElementById('mapping-value');
+            const fieldInput = document.getElementById('mapping-field');
+            
+            modalTitle.textContent = '新增字段映射';
+            valueInput.value = '';
+            fieldInput.value = '';
+            
+            modal.classList.add('visible');
+        }
+
+        function editMapping(contentValue, fieldTypes) {
+            const modal = document.getElementById('mapping-modal');
+            const modalTitle = document.getElementById('mapping-modal-title');
+            const valueInput = document.getElementById('mapping-value');
+            const fieldInput = document.getElementById('mapping-field');
+            
+            modalTitle.textContent = '编辑字段映射';
+            valueInput.value = contentValue;
+            fieldInput.value = fieldTypes;
+            
+            modal.classList.add('visible');
+        }
+
+        function closeMappingModal() {
+            document.getElementById('mapping-modal').classList.remove('visible');
+        }
+
+        function saveMappingModal() {
+            const valueInput = document.getElementById('mapping-value');
+            const fieldInput = document.getElementById('mapping-field');
+            
+            if (!valueInput.value.trim() || !fieldInput.value.trim()) {
+                alert('请填写内容值和字段类型');
+                return;
+            }
+            
+            // 模拟保存
+            alert('映射已保存：' + valueInput.value + ' → ' + fieldInput.value);
+            closeMappingModal();
+        }
+
+        // 支持 hash 跳转
+        if (window.location.hash === '#knowledge') {
+            setTimeout(() => {
+                document.querySelector('[onclick="switchTab(\'knowledge\')"]').click();
+            }, 100);
+        }
+    </script>
+</body>
+</html>
