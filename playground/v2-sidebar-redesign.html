@@ -1953,6 +1953,170 @@
             }
         `;
         document.head.appendChild(style);
+
+        // ===== 输入框交互逻辑 =====
+        
+        // 激活输入框 - 显示操作按钮
+        document.querySelectorAll('.mock-input, .mock-textarea').forEach(input => {
+            input.addEventListener('focus', function() {
+                const group = this.closest('.mock-form-group');
+                if (group) {
+                    // 先清除其他输入框的激活状态
+                    document.querySelectorAll('.mock-form-group.active').forEach(g => {
+                        if (g !== group) {
+                            g.classList.remove('active');
+                        }
+                    });
+                    group.classList.add('active');
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                const group = this.closest('.mock-form-group');
+                // 延迟取消激活，给用户时间点击按钮
+                setTimeout(() => {
+                    if (group && !group.matches(':hover')) {
+                        group.classList.remove('active');
+                    }
+                }, 200);
+            });
+        });
+
+        // 保持激活状态当鼠标悬停在表单组上
+        document.querySelectorAll('.mock-form-group').forEach(group => {
+            group.addEventListener('mouseleave', function() {
+                const input = this.querySelector('.mock-input, .mock-textarea');
+                if (input && !input.matches(':focus')) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // 单个字段快速填充
+        function quickFillSingle(element) {
+            const group = element.closest('.mock-form-group');
+            const input = group.querySelector('.mock-input, .mock-textarea');
+            const label = group.querySelector('.mock-label').textContent.trim();
+            
+            // 检查是否已有内容
+            if (input.value.trim() !== '') {
+                showStatus('该字段已有内容，跳过填充');
+                return;
+            }
+            
+            // 模拟映射数据
+            const mappingData = {
+                '姓名': '张明',
+                '邮箱': 'zhangming@example.com',
+                '手机号': '13800138000',
+                '公司名称': '金山办公',
+                '职位': '高级前端工程师',
+                '个人简介': '拥有5年前端开发经验，精通 React、Vue 等主流框架。'
+            };
+            
+            const value = mappingData[label.replace(' *', '')];
+            if (value) {
+                // 高亮动画
+                input.style.borderColor = 'var(--primary)';
+                input.style.boxShadow = '0 0 0 3px rgba(66, 133, 244, 0.2)';
+                
+                // 直接填充值
+                input.value = value;
+                
+                // 完成动画
+                setTimeout(() => {
+                    input.style.borderColor = '#2d8f47';
+                    input.style.backgroundColor = 'rgba(45, 143, 71, 0.05)';
+                    
+                    setTimeout(() => {
+                        input.style.borderColor = '';
+                        input.style.boxShadow = '';
+                        input.style.backgroundColor = '';
+                        group.classList.remove('active');
+                    }, 400);
+                }, 200);
+            } else {
+                showStatus('未找到该字段的映射');
+            }
+        }
+
+        // 单个字段智能填充
+        function intelligentFillSingle(element) {
+            const group = element.closest('.mock-form-group');
+            const input = group.querySelector('.mock-input, .mock-textarea');
+            
+            showStatus('AI 生成中');
+            
+            // 模拟 AI 生成
+            setTimeout(() => {
+                const value = input.classList.contains('mock-textarea') 
+                    ? '我是一名经验丰富的前端工程师，在金山办公担任高级前端工程师一职。我精通 React、Vue 等现代前端框架，有着扎实的 JavaScript 基础和良好的代码习惯。在过去的5年中，我参与并主导了多个大型 Web 应用的开发，积累了丰富的实战经验。'
+                    : '张明';
+                
+                // 打字效果
+                input.classList.add('filling');
+                input.style.borderColor = 'var(--primary)';
+                input.style.boxShadow = '0 0 0 3px rgba(66, 133, 244, 0.2)';
+                
+                let index = 0;
+                const typingInterval = setInterval(() => {
+                    if (index < value.length) {
+                        input.value += value[index];
+                        index++;
+                    } else {
+                        clearInterval(typingInterval);
+                        input.classList.remove('filling');
+                        
+                        // 完成动画
+                        input.style.borderColor = '#2d8f47';
+                        input.style.backgroundColor = 'rgba(45, 143, 71, 0.05)';
+                        
+                        setTimeout(() => {
+                            input.style.borderColor = '';
+                            input.style.boxShadow = '';
+                            input.style.backgroundColor = '';
+                            group.classList.remove('active');
+                        }, 400);
+                        
+                        showStatus('填充完成');
+                    }
+                }, 30);
+            }, 1000);
+        }
+
+        // Demo控制面板新增功能按钮
+        function triggerScanning() {
+            const inputs = document.querySelectorAll('.mock-input, .mock-textarea');
+            inputs.forEach((input, index) => {
+                setTimeout(() => {
+                    input.classList.add('ai-scanning');
+                    setTimeout(() => {
+                        input.classList.remove('ai-scanning');
+                        input.classList.add('ai-recognized');
+                    }, 1500);
+                }, index * 200);
+            });
+        }
+
+        function triggerFilling() {
+            const input = document.querySelector('.mock-input');
+            if (input) {
+                input.classList.add('filling');
+                setTimeout(() => {
+                    input.classList.remove('filling');
+                    input.classList.add('filled');
+                    setTimeout(() => input.classList.remove('filled'), 1000);
+                }, 2000);
+            }
+        }
+
+        function triggerError() {
+            const input = document.querySelector('.mock-input');
+            if (input) {
+                input.classList.add('error');
+                setTimeout(() => input.classList.remove('error'), 2000);
+            }
+        }
     </script>
 </body>
 </html>
