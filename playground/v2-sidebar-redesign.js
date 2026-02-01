@@ -30,11 +30,24 @@ function toggleCollapsible(header) {
 }
 
 function showStatus(action, skipSuccess = false) {
+    const message = skipSuccess ? action : `${action}成功`;
+    
+    // 如果在iframe内，发送消息给主窗口
+    if (window.parent !== window) {
+        window.parent.postMessage({ 
+            action: 'showStatus', 
+            message: message,
+            skipSuccess: skipSuccess
+        }, '*');
+        return;
+    }
+    
+    // 在主窗口，直接显示
     const container = document.getElementById('status-container');
+    if (!container) return;
+    
     const status = document.createElement('div');
     status.className = 'status-indicator';
-    
-    const message = skipSuccess ? action : `${action}成功`;
     
     status.innerHTML = `
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -65,6 +78,15 @@ function fillHistoryPrompt(element) {
 // ============ 扫描表单 ============
 
 function scanForm() {
+    // 检查是否在主窗口（有iframe元素）
+    const iframe = document.getElementById('scene-iframe');
+    if (iframe) {
+        // 在主窗口，发送消息给iframe
+        iframe.contentWindow.postMessage({ action: 'scanForm' }, '*');
+        return;
+    }
+    
+    // 在iframe内部，执行扫描
     const inputs = document.querySelectorAll('.mock-input:not(.mock-input-disabled), .mock-textarea, .mock-select');
     
     showStatus('开始识别表单', true);
@@ -90,6 +112,15 @@ function scanForm() {
 // ============ 智能填充（AI生成） ============
 
 function fillForm() {
+    // 检查是否在主窗口
+    const iframe = document.getElementById('scene-iframe');
+    if (iframe) {
+        // 在主窗口，发送消息给iframe
+        iframe.contentWindow.postMessage({ action: 'fillForm' }, '*');
+        return;
+    }
+    
+    // 在iframe内部，执行填充
     const inputs = document.querySelectorAll('.mock-input:not(.mock-input-disabled), .mock-textarea, .mock-select');
     
     // 如果已经识别过表单，直接跳到填充步骤
@@ -211,6 +242,15 @@ function startFilling() {
 // ============ 快速填充（字段映射） ============
 
 function quickFill() {
+    // 检查是否在主窗口
+    const iframe = document.getElementById('scene-iframe');
+    if (iframe) {
+        // 在主窗口，发送消息给iframe
+        iframe.contentWindow.postMessage({ action: 'quickFill' }, '*');
+        return;
+    }
+    
+    // 在iframe内部，执行快速填充
     const inputs = document.querySelectorAll('.mock-input:not(.mock-input-disabled), .mock-textarea, .mock-select');
     showStatus('开始快速填充', true);
     
@@ -252,6 +292,15 @@ function quickFill() {
 // ============ 学习内容 ============
 
 function learnContent() {
+    // 检查是否在主窗口
+    const iframe = document.getElementById('scene-iframe');
+    if (iframe) {
+        // 在主窗口，发送消息给iframe
+        iframe.contentWindow.postMessage({ action: 'learnContent' }, '*');
+        return;
+    }
+    
+    // 在iframe内部，执行学习
     const inputs = document.querySelectorAll('.mock-input:not(.mock-input-disabled), .mock-textarea, .mock-select');
     
     let hasContent = false;
@@ -402,6 +451,9 @@ function triggerError() {
 // ============ 页面加载完成后的初始化 ============
 
 document.addEventListener('DOMContentLoaded', function() {
+    // 🔥 核心功能：动态注入 Action Bar（模拟插件行为）
+    injectActionBars();
+    
     // 监听所有输入框的 focus 和 blur 事件
     const inputs = document.querySelectorAll('.mock-input:not(.mock-input-disabled), .mock-textarea, .mock-select');
     
@@ -470,67 +522,187 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
-    
-    // ============ 场景切换和划词功能初始化 ============
-    initSceneSwitcher();
-    initTextSelection();
 });
+
+// ============ 动态注入 Action Bar（核心功能）============
+
+function injectActionBars() {
+    const inputs = document.querySelectorAll('.mock-input:not(.mock-input-disabled), .mock-textarea, .mock-select');
+    
+    console.log('🔥 开始注入 Action Bars，找到输入框数量:', inputs.length);
+    
+    inputs.forEach(input => {
+        const group = input.closest('.mock-form-group');
+        if (!group) return;
+        
+        // 检查是否已经注入过
+        if (group.querySelector('.action-bar')) {
+            console.log('⏭️ 跳过已注入:', input);
+            return;
+        }
+        
+        // 判断输入框类型，决定是否显示某些按钮
+        const inputType = input.type || input.tagName.toLowerCase();
+        const isPassword = inputType === 'password';
+        const isTel = inputType === 'tel';
+        const isNumber = inputType === 'number';
+        const isSelect = input.tagName === 'SELECT';
+        const isEmpty = !input.value || input.value.trim() === '';
+        const isPureNumber = !isEmpty && /^\d+$/.test(input.value);
+        
+        console.log('📝 处理输入框:', { 
+            tagName: input.tagName, 
+            type: inputType, 
+            isPassword, 
+            isTel, 
+            isNumber, 
+            isSelect,
+            placeholder: input.placeholder 
+        });
+        
+        // 密码字段不显示任何按钮
+        if (isPassword) {
+            console.log('🔒 密码字段，跳过');
+            return;
+        }
+        
+        // 创建 action-bar
+        const actionBar = document.createElement('div');
+        actionBar.className = 'action-bar';
+        
+        // 1. 如果有缓存值，添加确认按钮
+        const cachedValue = input.dataset.cache;
+        if (cachedValue) {
+            const confirmBtn = document.createElement('button');
+            confirmBtn.className = 'cache-confirm-btn';
+            confirmBtn.setAttribute('data-tooltip', `填充：${cachedValue}`);
+            confirmBtn.innerHTML = '<i data-lucide="check"></i>';
+            confirmBtn.onclick = function() {
+                input.value = cachedValue;
+                input.classList.add('ai-filled');
+                showStatus('已填充缓存值');
+            };
+            actionBar.appendChild(confirmBtn);
+        }
+        
+        // 2. AI 填充按钮（蓝色主色调）
+        const fillBtn = document.createElement('button');
+        fillBtn.className = 'action-btn action-btn-fill primary';
+        fillBtn.setAttribute('data-tooltip', 'AI 填充');
+        fillBtn.innerHTML = '<i data-lucide="sparkles"></i>';
+        fillBtn.onclick = function() { fillSingleField(this); };
+        actionBar.appendChild(fillBtn);
+        
+        // 3. 翻译按钮（不对 select、tel、number 显示）
+        if (!isSelect && !isTel && !isNumber) {
+            console.log('添加翻译按钮到:', input);
+            
+            const translateGroup = document.createElement('div');
+            translateGroup.className = 'action-btn-group';
+            
+            const translateBtn = document.createElement('button');
+            translateBtn.className = 'action-btn action-btn-translate';
+            translateBtn.setAttribute('data-tooltip', '翻译');
+            translateBtn.innerHTML = '<i data-lucide="languages"></i>';
+            translateBtn.onclick = function() { toggleTranslateMenu(this); };
+            
+            const translateMenu = document.createElement('div');
+            translateMenu.className = 'translate-menu';
+            
+            const languages = [
+                { code: 'en', name: '🇬🇧 English' },
+                { code: 'ru', name: '🇷🇺 Русский' },
+                { code: 'ko', name: '🇰🇷 한국어' },
+                { code: 'ja', name: '🇯🇵 日本語' },
+                { code: 'es', name: '🇪🇸 Español' },
+                { code: 'pt', name: '🇵🇹 Português' },
+                { code: 'fr', name: '🇫🇷 Français' },
+                { code: 'de', name: '🇩🇪 Deutsch' },
+                { code: 'id', name: '🇮🇩 Bahasa Indonesia' },
+                { code: 'th', name: '🇹🇭 ไทย' },
+                { code: 'ar', name: '🇸🇦 العربية' },
+                { code: 'zh-TW', name: '🇭🇰 繁體中文' },
+                { code: 'zh-CN', name: '🇨🇳 简体中文' }
+            ];
+            
+            languages.forEach(lang => {
+                const item = document.createElement('div');
+                item.className = 'translate-item';
+                item.textContent = lang.name;
+                item.onclick = function() { translateTo(this, lang.code); };
+                translateMenu.appendChild(item);
+            });
+            
+            translateGroup.appendChild(translateBtn);
+            translateGroup.appendChild(translateMenu);
+            actionBar.appendChild(translateGroup);
+            
+            console.log('翻译按钮已添加，菜单项数量:', languages.length);
+        } else {
+            console.log('跳过翻译按钮:', { isSelect, isTel, isNumber, input });
+        }
+        
+        // 4. 重填整个表单按钮
+        const refillBtn = document.createElement('button');
+        refillBtn.className = 'action-btn action-btn-refill';
+        refillBtn.setAttribute('data-tooltip', '重填整个表单');
+        refillBtn.innerHTML = '<i data-lucide="list-restart"></i>';
+        refillBtn.onclick = function() { refillEntireForm(); };
+        actionBar.appendChild(refillBtn);
+        
+        // 插入到 group 中
+        group.appendChild(actionBar);
+    });
+    
+    // 重新初始化 Lucide 图标
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+}
 
 // ============ 场景切换 ============
 let currentScene = 'form'; // 'form' 或 'bbs'
 
-function initSceneSwitcher() {
-    // 确保初始状态正确
-    const formScene = document.getElementById('scene-form');
-    const bbsScene = document.getElementById('scene-bbs');
-    
-    if (formScene && bbsScene) {
-        // 直接操作 style，确保生效
-        formScene.style.display = 'block';
-        bbsScene.style.display = 'none';
-        formScene.classList.add('active');
-        bbsScene.classList.remove('active');
-        console.log('初始化场景完成：表单场景显示');
-    } else {
-        console.error('场景容器未找到！', { formScene, bbsScene });
-    }
-}
-
 function toggleScene() {
-    const formScene = document.getElementById('scene-form');
-    const bbsScene = document.getElementById('scene-bbs');
-    const mockPage = document.querySelector('.mock-page');
+    const iframe = document.getElementById('scene-iframe');
     
-    if (!formScene || !bbsScene) {
-        console.error('场景容器未找到！');
-        showStatus('错误：场景容器未找到');
+    if (!iframe) {
+        // 如果在iframe内部，通知父窗口切换
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ action: 'toggleScene' }, '*');
+        }
         return;
     }
     
-    // 根据当前场景状态进行切换
+    // 在主窗口中切换iframe的src
     if (currentScene === 'form') {
-        // 切换到 BBS - 直接操作 style
-        formScene.style.display = 'none';
-        bbsScene.style.display = 'block';
-        formScene.classList.remove('active');
-        bbsScene.classList.add('active');
+        iframe.src = 'scene-bbs.html';
         currentScene = 'bbs';
         showStatus('已切换到 BBS 回复场景');
     } else {
-        // 切换到表单 - 直接操作 style
-        bbsScene.style.display = 'none';
-        formScene.style.display = 'block';
-        bbsScene.classList.remove('active');
-        formScene.classList.add('active');
+        iframe.src = 'scene-form.html';
         currentScene = 'form';
         showStatus('已切换到注册表单场景');
     }
-    
-    // 重置滚动位置到顶部
-    if (mockPage) {
-        mockPage.scrollTop = 0;
-    }
 }
+
+// 监听来自iframe的消息
+window.addEventListener('message', function(event) {
+    if (event.data.action === 'toggleScene') {
+        toggleScene();
+    } else if (event.data.action === 'scanForm') {
+        scanForm();
+    } else if (event.data.action === 'fillForm') {
+        fillForm();
+    } else if (event.data.action === 'quickFill') {
+        quickFill();
+    } else if (event.data.action === 'learnContent') {
+        learnContent();
+    } else if (event.data.action === 'showStatus') {
+        // iframe 请求显示状态
+        showStatus(event.data.message, event.data.skipSuccess);
+    }
+});
 
 // ============ 划词功能 ============
 let selectionTooltip = null;
@@ -597,3 +769,127 @@ function addToReference(text, source) {
     // 后续需要在侧边栏的 HTML 中添加引用区域，并动态插入引用卡片
 }
 
+// ============ 输入框动作按钮功能 ============
+
+function fillSingleField(button) {
+    const group = button.closest('.mock-form-group');
+    const input = group.querySelector('.mock-input, .mock-textarea, .mock-select');
+    
+    if (!input) return;
+    
+    showStatus('正在生成内容', true);
+    
+    // 模拟 AI 生成内容
+    setTimeout(() => {
+        const sampleTexts = {
+            textarea: '感谢楼主提问！我之前也遇到过类似的问题。建议先从 React 官方文档开始，跟着做几个小项目。同时要理解 JSX、组件、Props、State 这些核心概念。有问题随时交流！',
+            input: '示例内容',
+            select: '选项1'
+        };
+        
+        let content = '';
+        if (input.tagName === 'TEXTAREA') {
+            content = sampleTexts.textarea;
+        } else if (input.tagName === 'SELECT') {
+            content = sampleTexts.select;
+        } else {
+            content = sampleTexts.input;
+        }
+        
+        // 清空并打字效果
+        input.value = '';
+        input.classList.add('ai-filling');
+        
+        let i = 0;
+        const typingInterval = setInterval(() => {
+            if (i < content.length) {
+                input.value += content[i];
+                i++;
+            } else {
+                clearInterval(typingInterval);
+                input.classList.remove('ai-filling');
+                input.classList.add('ai-filled');
+                showStatus('内容生成完成');
+            }
+        }, 30);
+    }, 800);
+}
+
+function toggleTranslateMenu(button) {
+    const menu = button.parentElement.querySelector('.translate-menu');
+    if (!menu) return;
+    
+    // 关闭其他已打开的菜单
+    document.querySelectorAll('.translate-menu.active').forEach(m => {
+        if (m !== menu) m.classList.remove('active');
+    });
+    
+    menu.classList.toggle('active');
+    
+    // 点击外部关闭菜单
+    if (menu.classList.contains('active')) {
+        setTimeout(() => {
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target) && e.target !== button) {
+                    menu.classList.remove('active');
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }, 0);
+    }
+}
+
+function translateTo(item, lang) {
+    const menu = item.parentElement;
+    const group = menu.closest('.mock-form-group');
+    const input = group.querySelector('.mock-input, .mock-textarea, .mock-select');
+    
+    if (!input || !input.value) {
+        showStatus('内容为空，无法翻译');
+        menu.classList.remove('active');
+        return;
+    }
+    
+    // 检查是否为不适合翻译的类型
+    const inputType = input.type || input.tagName.toLowerCase();
+    const isTel = inputType === 'tel';
+    const isNumber = inputType === 'number';
+    const isSelect = input.tagName === 'SELECT';
+    const isPureNumber = /^\d+$/.test(input.value);
+    
+    if (isTel || isNumber || isSelect || isPureNumber) {
+        showStatus('此字段不适合翻译');
+        menu.classList.remove('active');
+        return;
+    }
+    
+    showStatus(`正在翻译为${item.textContent}`, true);
+    menu.classList.remove('active');
+    
+    // 模拟翻译
+    setTimeout(() => {
+        const translations = {
+            'en': 'Thank you for the question! I had similar issues before. I suggest starting with the official React documentation and building a few small projects. Also, understand core concepts like JSX, Components, Props, and State. Feel free to discuss anytime!',
+            'ja': 'ご質問ありがとうございます！私も以前同じような問題に遭遇しました。Reactの公式ドキュメントから始めて、いくつかの小さなプロジェクトを作ることをお勧めします。同時に、JSX、コンポーネント、Props、Stateなどの中核概念を理解する必要があります。質問があればいつでも交流しましょう！'
+        };
+        
+        input.value = translations[lang] || `[${item.textContent}] ${input.value}`;
+        showStatus('翻译完成');
+    }, 1000);
+}
+
+function refillEntireForm() {
+    showStatus('重新填充整个表单', true);
+    
+    // 检查是否在主窗口
+    const iframe = document.getElementById('scene-iframe');
+    if (iframe) {
+        // 在主窗口，发送消息给iframe
+        iframe.contentWindow.postMessage({ action: 'fillForm' }, '*');
+    } else {
+        // 在iframe内，直接调用
+        fillForm();
+    }
+}
+
+// Version: 1769924759

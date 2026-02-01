@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册表单场景</title>
+    <link rel="stylesheet" href="v2-sidebar-redesign.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-y: auto;
+        }
+        body {
+            background: var(--bg-secondary);
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h1 class="mock-page-title">用户注册表单</h1>
+        <p class="mock-page-subtitle">
+            这是一个模拟的表单页面，用于展示侧边栏与表单的交互效果。点击表单字段可以看到 AI Former 的智能填充功能。
+        </p>
+        
+        <div class="mock-form">
+                <!-- 0. 头像上传 -->
+                <div class="mock-form-group">
+                    <label class="mock-label">头像</label>
+                    <div class="mock-avatar-upload">
+                        <div class="mock-avatar-placeholder" onclick="alert('点击上传头像')">
+                            <i data-lucide="user"></i>
+                            <span class="mock-avatar-hint">点击上传</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 1-2. 姓名 + 性别（两列） -->
+                <div class="mock-form-row">
+                    <!-- 1. 姓名（有缓存） -->
+                    <div class="mock-form-group">
+                        <label class="mock-label">姓名 *</label>
+                        <div class="action-bar">
+                        <button class="cache-confirm-btn" onclick="fillCachedValue(this)" data-tooltip="填充：张明">
+                            <i data-lucide="check"></i>
+                        </button>
+                        <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                        </button>
+                        <div class="dropdown">
+                            <button class="action-btn" data-tooltip="翻译">
+                                <i data-lucide="languages"></i>
+                            </button>
+                                <div class="dropdown-menu">
+                                    <div class="dropdown-item" onclick="translateField(this, 'en')"><span>🇬🇧</span> English</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'es')"><span>🇪🇸</span> Español</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'fr')"><span>🇫🇷</span> Français</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'de')"><span>🇩🇪</span> Deutsch</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'pt')"><span>🇵🇹</span> Português</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'ru')"><span>🇷🇺</span> Русский</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'ja')"><span>🇯🇵</span> 日本語</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'ko')"><span>🇰🇷</span> 한국어</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'id')"><span>🇮🇩</span> Bahasa Indonesia</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'th')"><span>🇹🇭</span> ภาษาไทย</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'ar')"><span>🇸🇦</span> العربية</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'zh-CN')"><span>🇨🇳</span> 简体中文</div>
+                                    <div class="dropdown-item" onclick="translateField(this, 'zh-HK')"><span>🇭🇰</span> 繁體中文</div>
+                                </div>
+                            </div>
+                            <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                            </button>
+                        </div>
+                        <input type="text" class="mock-input has-cache" placeholder="张明" data-cache="张明">
+                    </div>
+                    
+                    <!-- 2. 性别 -->
+                    <div class="mock-form-group">
+                        <label class="mock-label">性别 *</label>
+                        <div class="action-bar">
+                            <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                            </button>
+                            <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                            </button>
+                        </div>
+                        <select class="mock-select mock-input">
+                            <option value="">请选择</option>
+                            <option value="male">男</option>
+                            <option value="female">女</option>
+                            <option value="other">其他</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 3-4. 学历 + 年龄（两列） -->
+                <div class="mock-form-row">
+                    <!-- 3. 学历 -->
+                    <div class="mock-form-group">
+                        <label class="mock-label">学历 *</label>
+                        <div class="action-bar">
+                            <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                            </button>
+                            <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                            </button>
+                        </div>
+                        <select class="mock-select mock-input">
+                            <option value="">请选择学历</option>
+                            <option value="highschool">高中</option>
+                            <option value="college">大专</option>
+                            <option value="bachelor">本科</option>
+                            <option value="master">硕士</option>
+                            <option value="doctor">博士</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 4. 年龄 -->
+                    <div class="mock-form-group">
+                        <label class="mock-label">年龄 *</label>
+                        <div class="action-bar">
+                            <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                            </button>
+                            <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                            </button>
+                        </div>
+                        <input type="number" class="mock-input" placeholder="请输入年龄">
+                    </div>
+                </div>
+                
+                <!-- 5-6. 邮箱 + 手机号（两列） -->
+                <div class="mock-form-row">
+                    <!-- 5. 邮箱（有缓存） -->
+                    <div class="mock-form-group">
+                    <label class="mock-label">邮箱 *</label>
+                    <div class="action-bar">
+                        <button class="cache-confirm-btn" onclick="fillCachedValue(this)" data-tooltip="填充：zhangming@example.com">
+                            <i data-lucide="check"></i>
+                        </button>
+                        <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                        </button>
+                        <div class="dropdown">
+                            <button class="action-btn" data-tooltip="翻译">
+                                <i data-lucide="languages"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="translateField(this, 'en')"><span>🇬🇧</span> English</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'es')"><span>🇪🇸</span> Español</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'fr')"><span>🇫🇷</span> Français</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'de')"><span>🇩🇪</span> Deutsch</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'pt')"><span>🇵🇹</span> Português</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ru')"><span>🇷🇺</span> Русский</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ja')"><span>🇯🇵</span> 日本語</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ko')"><span>🇰🇷</span> 한국어</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'id')"><span>🇮🇩</span> Bahasa Indonesia</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'th')"><span>🇹🇭</span> ภาษาไทย</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ar')"><span>🇸🇦</span> العربية</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'zh-CN')"><span>🇨🇳</span> 简体中文</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'zh-HK')"><span>🇭🇰</span> 繁體中文</div>
+                            </div>
+                        </div>
+                        <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                        </button>
+                    </div>
+                        <input type="email" class="mock-input has-cache" placeholder="zhangming@example.com" data-cache="zhangming@example.com">
+                    </div>
+                    
+                    <!-- 6. 手机号 -->
+                    <div class="mock-form-group">
+                    <label class="mock-label">手机号 *</label>
+                    <div class="action-bar">
+                        <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                        </button>
+                        <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                        </button>
+                    </div>
+                        <input type="tel" class="mock-input" placeholder="请输入手机号码">
+                    </div>
+                </div>
+                
+                <!-- 7. 地址（独立一行） -->
+                <div class="mock-form-group">
+                    <label class="mock-label">地址</label>
+                    <div class="action-bar">
+                        <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                        </button>
+                        <div class="dropdown">
+                            <button class="action-btn" data-tooltip="翻译">
+                                <i data-lucide="languages"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="translateField(this, 'en')"><span>🇬🇧</span> English</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'es')"><span>🇪🇸</span> Español</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'fr')"><span>🇫🇷</span> Français</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'de')"><span>🇩🇪</span> Deutsch</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'pt')"><span>🇵🇹</span> Português</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ru')"><span>🇷🇺</span> Русский</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ja')"><span>🇯🇵</span> 日本語</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ko')"><span>🇰🇷</span> 한국어</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'id')"><span>🇮🇩</span> Bahasa Indonesia</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'th')"><span>🇹🇭</span> ภาษาไทย</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ar')"><span>🇸🇦</span> العربية</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'zh-CN')"><span>🇨🇳</span> 简体中文</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'zh-HK')"><span>🇭🇰</span> 繁體中文</div>
+                            </div>
+                        </div>
+                        <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                        </button>
+                    </div>
+                    <input type="text" class="mock-input" placeholder="请输入详细地址">
+                </div>
+                
+                <!-- 8. 公司名称 -->
+                <div class="mock-form-group">
+                    <label class="mock-label">公司名称</label>
+                    <div class="action-bar">
+                        <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                        </button>
+                        <div class="dropdown">
+                            <button class="action-btn" data-tooltip="翻译">
+                                <i data-lucide="languages"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="translateField(this, 'en')"><span>🇬🇧</span> English</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'es')"><span>🇪🇸</span> Español</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'fr')"><span>🇫🇷</span> Français</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'de')"><span>🇩🇪</span> Deutsch</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'pt')"><span>🇵🇹</span> Português</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ru')"><span>🇷🇺</span> Русский</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ja')"><span>🇯🇵</span> 日本語</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ko')"><span>🇰🇷</span> 한국어</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'id')"><span>🇮🇩</span> Bahasa Indonesia</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'th')"><span>🇹🇭</span> ภาษาไทย</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ar')"><span>🇸🇦</span> العربية</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'zh-CN')"><span>🇨🇳</span> 简体中文</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'zh-HK')"><span>🇭🇰</span> 繁體中文</div>
+                            </div>
+                        </div>
+                        <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                        </button>
+                    </div>
+                    <input type="text" class="mock-input" placeholder="请输入公司名称">
+                </div>
+                
+                <!-- 9. 个人简介 -->
+                <div class="mock-form-group">
+                    <label class="mock-label">个人简介 *</label>
+                    <div class="action-bar">
+                        <button class="action-btn primary" onclick="aiFillSingle(this)" data-tooltip="AI 填充">
+                            <i data-lucide="sparkles"></i>
+                        </button>
+                        <div class="dropdown">
+                            <button class="action-btn" data-tooltip="翻译">
+                                <i data-lucide="languages"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <div class="dropdown-item" onclick="translateField(this, 'en')"><span>🇬🇧</span> English</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'es')"><span>🇪🇸</span> Español</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'fr')"><span>🇫🇷</span> Français</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'de')"><span>🇩🇪</span> Deutsch</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'pt')"><span>🇵🇹</span> Português</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ru')"><span>🇷🇺</span> Русский</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ja')"><span>🇯🇵</span> 日本語</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ko')"><span>🇰🇷</span> 한국어</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'id')"><span>🇮🇩</span> Bahasa Indonesia</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'th')"><span>🇹🇭</span> ภาษาไทย</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'ar')"><span>🇸🇦</span> العربية</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'zh-CN')"><span>🇨🇳</span> 简体中文</div>
+                                <div class="dropdown-item" onclick="translateField(this, 'zh-HK')"><span>🇭🇰</span> 繁體中文</div>
+                            </div>
+                        </div>
+                        <button class="action-btn" onclick="fillForm()" data-tooltip="重填整个表单">
+                            <i data-lucide="list-restart"></i>
+                        </button>
+                    </div>
+                    <textarea class="mock-textarea" placeholder="请简要介绍一下自己，包括工作经历、技能特长等..."></textarea>
+                </div>
+                
+                <!-- 9. 用户ID（禁用） -->
+                <div class="mock-form-group">
+                    <label class="mock-label">用户ID <span style="font-size: 12px; color: var(--text-secondary);">(系统自动生成)</span></label>
+                    <input type="text" class="mock-input mock-input-disabled" value="UID_2025_001234" readonly disabled>
+                </div>
+                
+                <!-- 10. 进度条 -->
+                <div class="mock-form-group">
+                    <label class="mock-label">完成度</label>
+                    <div class="mock-progress-wrapper">
+                        <div class="mock-progress-bar">
+                            <div class="mock-progress-fill" style="width: 75%"></div>
+                        </div>
+                        <span class="mock-progress-text">75%</span>
+                    </div>
+                </div>
+                
+                <button class="mock-submit">提交注册</button>
+            </div>
+    </div>
+
+    <script src="lucide.min.js"></script>
+    <script src="v2-sidebar-redesign.js"></script>
+</body>
+</html>

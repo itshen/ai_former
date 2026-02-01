@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBS 回复场景</title>
+    <link rel="stylesheet" href="v2-sidebar-redesign.css">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-y: auto;
+        }
+        body {
+            background: var(--bg-secondary);
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div style="max-width: 800px; margin: 0 auto;">
+        <h1 class="mock-page-title">💬 论坛帖子</h1>
+        
+        <!-- 帖子主题 -->
+        <div class="bbs-thread-title">前端新手如何学习 React？</div>
+        
+        <!-- 主楼 -->
+        <div class="bbs-post" data-floor="1" data-author="楼主">
+            <div class="bbs-post-header">
+                <span class="bbs-floor">#1楼</span>
+                <span class="bbs-author">楼主</span>
+                <span class="bbs-time">2小时前</span>
+            </div>
+            <div class="bbs-post-content selectable-text">
+                我是刚学完 HTML/CSS/JS 基础的新手，想开始学习 React。<br><br>
+                看了很多教程，感觉知识点很零散，不知道从哪里开始。<br>
+                大家有什么好的学习路线推荐吗？
+            </div>
+        </div>
+        
+        <!-- 回复楼层 -->
+        <div class="bbs-post" data-floor="2" data-author="张三">
+            <div class="bbs-post-header">
+                <span class="bbs-floor">#2楼</span>
+                <span class="bbs-author">张三</span>
+                <span class="bbs-time">1小时前</span>
+            </div>
+            <div class="bbs-post-content selectable-text">
+                建议先把 JavaScript 基础打牢，特别是 ES6+ 语法。<br>
+                然后跟着 React 官方文档一步步学，很清晰。
+            </div>
+        </div>
+        
+        <div class="bbs-post" data-floor="3" data-author="李四">
+            <div class="bbs-post-header">
+                <span class="bbs-floor">#3楼</span>
+                <span class="bbs-author">李四</span>
+                <span class="bbs-time">30分钟前</span>
+            </div>
+            <div class="bbs-post-content selectable-text">
+                我当时是看视频教程入门的，推荐 xxx 课程。<br>
+                边学边做项目，效果更好。
+            </div>
+        </div>
+        
+        <!-- 回复框 -->
+        <div class="bbs-reply-section">
+            <label class="mock-label">我的回复</label>
+            <div class="mock-form-group">
+                <textarea 
+                    class="mock-textarea bbs-reply-textarea" 
+                    placeholder="输入你的回复..."
+                    rows="6"
+                ></textarea>
+            </div>
+            <button class="mock-submit">发布回复</button>
+        </div>
+    </div>
+
+    <script src="lucide.min.js"></script>
+    <script src="v2-sidebar-redesign.js"></script>
+</body>
+</html>
