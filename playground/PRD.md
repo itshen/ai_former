@@ -10,6 +10,7 @@ AI Former 是一个智能表单填充浏览器插件，需要优化其交互动�
 - 重新设计侧边栏（Sidebar）界面，提供更简洁的用户体验
 - 重新设计设置页面，支持多种配置项
 - 创建动效 Playground 用于调试和演示
+- **支持多场景应用**：表单填充、BBS 回复等
 - 确保所有界面支持暗黑模式和响应式布局
 
 ### 1.3 设计原则
@@ -26,9 +27,51 @@ AI Former 是一个智能表单填充浏览器插件，需要优化其交互动�
 ### 2.1 技术选型
 - **前端框架**：纯 HTML + CSS（禁止使用 Vue/React/Alpine.js）
 - **样式方案**：CSS Variables + Media Queries
-- **图标系统**：SVG（mingcute 风格）
+- **图标系统**：Lucide Icons（本地文件）
 - **AI 模型**：google/gemini-3-flash-preview（关闭 Reasoning）
 - **API Key 管理**：本地存储
+
+**图标集成方式**：
+```html
+<!-- 本地引入（已下载到 playground/lucide.min.js） -->
+<script src="lucide.min.js"></script>
+
+<!-- 使用方式 -->
+<i data-lucide="sparkles"></i>  <!-- AI 填充 -->
+<i data-lucide="globe"></i>     <!-- 翻译 -->
+<i data-lucide="check"></i>     <!-- 确认 -->
+<i data-lucide="refresh-cw"></i> <!-- 重填表单 -->
+<i data-lucide="chevron-down"></i> <!-- 折叠 -->
+
+<!-- JavaScript 初始化（在 DOMContentLoaded 或文件末尾） -->
+<script>
+  if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+  }
+</script>
+```
+
+**常用图标列表**：
+- `sparkles` - AI 填充/魔法
+- `languages` - 翻译（替换了 globe）
+- `check` - 确认
+- `list-restart` - 重填整个表单（替换了 refresh-cw）
+- `chevron-down` - 下拉/折叠
+- `chevron-left` - 返回
+- `x` - 关闭
+- `settings` - 设置
+- `scan-text` - 扫描表单（替换了 scan-line）
+- `book-open` - 学习内容/知识库
+- `github` - GitHub（14px）
+- `user` - 用户/头像
+- `external-link` - 外部链接
+- `folder` - 文件夹
+- `arrow-right` - 右箭头
+
+**图标大小规范**：
+- 主按钮（.btn-primary）图标：16px × 16px
+- GitHub 链接图标：14px × 14px
+- 其他图标：默认大小（由 Lucide 控制）
 
 ### 2.2 配色规范
 - **主色调**：蓝色 `#1f87fc`（填充按钮、有缓存值边框）
@@ -48,7 +91,201 @@ AI Former 是一个智能表单填充浏览器插件，需要优化其交互动�
 
 ---
 
-## 三、功能模块设计
+## 三、应用场景
+
+### 3.1 场景一：注册表单填充
+
+**场景描述**：
+用户需要在各类网站注册账号，填写个人信息表单。
+
+**核心功能**：
+- 识别表单字段（姓名、邮箱、手机号、地址等）
+- 快速填充：使用预设的个人信息映射
+- 智能填充：根据知识库生成个性化内容
+- 引用区域：挂载个人档案知识库
+
+**用户流程**：
+1. 打开注册页面，侧边栏自动识别表单
+2. 点击"快速填充"，基础信息自动填入
+3. 对于"个人简介"等字段，输入填充要求："突出技术能力"
+4. 点击"开始智能填充"，AI 生成个性化简介
+
+### 3.2 场景二：BBS 论坛回复
+
+**场景描述**：
+用户在论坛、社区浏览帖子，需要回复内容。
+
+**Playground 文件**：`v2-bbs-reply.html`
+
+**页面布局**：
+```
+┌─────────────────┬────────────────────────────────┐
+│   侧边栏        │   主内容区（论坛帖子页面）      │
+│ ┌─────────────┐ │ ┌────────────────────────────┐ │
+│ │填充要求面板  │ │ │ 标题：如何学习前端开发？    │ │
+│ │             │ │ ├────────────────────────────┤ │
+│ │ 📎 引用内容 │ │ │ #1楼 @楼主                  │ │
+│ │ [空状态]    │ │ │ 我是零基础小白，想学前端... │ │
+│ │             │ │ │ [可划词]                   │ │
+│ │ 填充要求:   │ │ ├────────────────────────────┤ │
+│ │ [输入框]    │ │ │ #2楼 @张三                  │ │
+│ │             │ │ │ 建议从 HTML/CSS 开始...     │ │
+│ │ [开始填充]  │ │ │ [可划词]                   │ │
+│ └─────────────┘ │ ├────────────────────────────┤ │
+│                 │ │ 我的回复：                  │ │
+│                 │ │ ┌──────────────────────────┐ │
+│                 │ │ │ [多行文本输入框]         │ │
+│                 │ │ │                          │ │
+│                 │ │ └──────────────────────────┘ │
+│                 │ │ [发布回复]                  │ │
+│                 │ └────────────────────────────┘ │
+└─────────────────┴────────────────────────────────┘
+```
+
+**核心功能**：
+
+1. **划词引用**：
+   - 选中楼层内容 → 出现浮动按钮"➕ 添加到引用"
+   - 点击后内容添加到侧边栏引用区域
+   - 记录来源信息（楼层号、用户名）
+
+2. **智能回复**：
+   - 引用区域显示被引用的内容
+   - 填充要求输入框："礼貌回复，提供建设性意见"
+   - AI 根据引用内容和要求生成回复
+
+**用户流程**：
+1. 阅读主楼内容，划词添加关键内容到引用
+2. 浏览其他楼层，划词添加需要回应的观点
+3. 在填充要求中输入回复要求
+4. 点击"开始智能填充"，AI 生成针对性回复，填充到"我的回复"框
+
+**引用区域示例**：
+```
+📎 引用内容 (2)
+┌─────────────────────────────────────┐
+│ 🔗 来自 #1楼 @楼主                    │
+│ "我是零基础小白，想学前端开发"       │ [×]
+├─────────────────────────────────────┤
+│ 🔗 来自 #2楼 @张三                    │
+│ "建议从 HTML/CSS 开始，循序渐进"    │ [×]
+└─────────────────────────────────────┘
+```
+
+**填充要求示例**：
+```
+礼貌回复楼主和张三的观点，鼓励楼主坚持学习，
+同意张三的建议，补充推荐一些学习资源。
+语气友好、鼓励性。
+```
+
+**技术实现要点**：
+
+1. **划词监听**：
+```javascript
+// 监听文本选择
+document.addEventListener('mouseup', function(e) {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    
+    if (selectedText.length > 0) {
+        // 获取选区位置
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        // 显示浮动按钮
+        showAddReferenceButton(rect, selectedText);
+    }
+});
+```
+
+2. **添加到引用区域**：
+```javascript
+function addToReference(text, source) {
+    const referenceArea = document.getElementById('referenceArea');
+    const referenceCard = createReferenceCard({
+        text: text,
+        source: source, // { type: 'bbs', floor: 1, username: '楼主' }
+        timestamp: Date.now()
+    });
+    referenceArea.appendChild(referenceCard);
+}
+```
+
+3. **AI 填充时携带引用**：
+```javascript
+function fillBBSReply() {
+    const references = getAllReferences(); // 获取所有引用
+    const requirement = getRequirement(); // 获取填充要求
+    
+    const prompt = `
+引用内容：
+${references.map(r => `- ${r.source.username}说："${r.text}"`).join('\n')}
+
+用户要求：
+${requirement}
+
+请生成一个合适的回复内容。
+    `;
+    
+    // 调用 AI API
+    callAI(prompt).then(reply => {
+        fillTextarea(reply);
+    });
+}
+```
+
+**Demo 数据示例**：
+
+**主楼内容**：
+```
+标题：前端新手如何学习 React？
+
+我是刚学完 HTML/CSS/JS 基础的新手，想开始学习 React。
+看了很多教程，感觉知识点很零散，不知道从哪里开始。
+大家有什么好的学习路线推荐吗？
+```
+
+**回复楼层**：
+```
+#2楼 @张三：
+建议先把 JavaScript 基础打牢，特别是 ES6+ 语法。
+然后跟着 React 官方文档一步步学，很清晰。
+
+#3楼 @李四：
+我当时是看视频教程入门的，推荐 [某课程]。
+边学边做项目，效果更好。
+```
+
+**AI 生成的回复示例**（基于引用和要求）：
+```
+楼主你好！👋
+
+很高兴看到你已经完成了基础学习，准备进入 React 阶段。
+
+正如 @张三 所说，JavaScript ES6+ 确实非常重要，建议你重点掌握：
+- 箭头函数、解构赋值
+- Promise、async/await
+- 模块化（import/export）
+
+另外，@李四 提到的边学边做项目的方法很有效。我建议：
+1. 跟完 React 官方教程（井字棋游戏）
+2. 尝试做一个简单的 Todo App
+3. 逐步增加复杂度，比如加入状态管理
+
+学习过程中遇到问题别气馁，多查文档多实践！加油💪
+```
+
+### 3.3 更多场景（待扩展）
+
+- 工作邮件回复
+- 客服工单处理
+- 社交媒体评论
+- 在线问卷填写
+
+---
+
+## 四、功能模块设计
 
 ### 3.1 动效系统（Animation Playground）
 
@@ -137,15 +374,17 @@ graph TB
 
 **快捷操作（3个按钮）：**
 1. **识别表单**
-   - 图标：表格 SVG
-   - 功能：扫描页面表单字段，AI 识别字段类型和用途
-   - 视觉反馈：
-     - 扫描波纹从左到右扫过表单
-     - 输入框逐个橙色脉冲高亮（识别中）
-     - 识别完成后，输入框显示淡蓝色背景（已识别状态）
+   - 图标：`scan-text`
+   - 功能：识别当前页面的表单结构
+   - **交互方式（简化版，避免页面抖动）**：
+     - 点击后显示 Toast："开始识别表单"
+     - 简短延时（~800ms）后显示："识别完成，共找到 X 个字段"
+     - **不添加任何视觉动画**（无扫描波纹、无输入框高亮）
+     - 设置全局标记 `isFormScanned = true`
+   - 目的：标记表单已识别，后续智能填充可跳过识别步骤
    
 2. **快速填充**
-   - 图标：魔法棒 SVG
+   - 图标：`sparkles`
    - 功能：基于预设的字段映射关系快速填充
    - 映射关系说明：
      - 用户在设置页面预先配置好「字段名 → 填充内容」的映射
@@ -155,7 +394,7 @@ graph TB
    - 优势：无需 AI 生成，速度快，内容稳定
    
 3. **学习内容**
-   - 图标：书本 SVG
+   - 图标：`book-open`
    - 功能：学习当前表单已填写内容，用于快速填充和智能填充
    - 流程：
      - 抓取当前页面所有已填写的表单内容
@@ -168,12 +407,106 @@ graph TB
 
 **填充要求（手风琴面板）：**
 - 功能：智能填充（AI 生成内容）
-- 多行文本输入框
-- placeholder："例如：重点突出我的技术能力，语气要专业..."
-- 填充按钮（主色调）
-- 与快速填充的区别：
-  - **智能填充**：用户可输入自定义要求，AI 根据要求和知识库生成内容
-  - **快速填充**：直接使用预设映射关系，无需 AI 生成
+
+**组件结构**：
+
+1. **引用区域（Reference Area）** ⭐ 新增
+   - 位置：位于文本输入框上方
+   - 功能：展示被引用的内容，作为 AI 填充的上下文
+   - 内容来源：
+     - **知识库挂载**：用户选择的知识库档案自动显示在此
+     - **页面划词**：用户在页面任意位置划词，点击"添加到引用"
+   - UI 设计：
+     - 引用卡片形式展示
+     - 每个引用显示来源（知识库 / 页面划词）
+     - 可删除按钮（X）
+     - 空状态提示："暂无引用内容，可划词添加或选择知识库"
+   - 示例：
+     ```
+     📎 引用内容 (2)
+     ┌─────────────────────────────────┐
+     │ 📄 来自知识库：个人档案           │
+     │ 张明，5年前端开发经验...         │ [×]
+     ├─────────────────────────────────┤
+     │ 🔗 来自页面划词                  │
+     │ "期望薪资：20-30K"              │ [×]
+     └─────────────────────────────────┘
+     ```
+
+2. **填充要求输入框**
+   - 多行文本输入框
+   - placeholder："例如：重点突出我的技术能力，语气要专业..."
+   
+3. **填充按钮**
+   - 主色调按钮
+   - 文本："开始智能填充"
+
+**划词功能（Selection Context Menu）**：
+- 触发条件：用户在页面任意位置选中文本（`window.getSelection()`）
+- 交互设计：
+  - 选中文本后，出现浮动按钮："➕ 添加到引用"
+  - 点击后，文本添加到引用区域
+  - 记录来源信息（URL、页面标题、时间戳）
+- 适用场景：
+  - **BBS 回复**：引用楼层内容
+  - **注册表单**：引用招聘 JD 要求
+  - **问卷调查**：引用问题说明
+
+**与快速填充的区别**：
+- **智能填充**：用户可输入自定义要求 + 引用内容，AI 根据要求、引用和知识库生成内容
+- **快速填充**：直接使用预设映射关系，无需 AI 生成，**自动跳过已有内容的字段**
+
+**填充逻辑说明**：
+1. **智能填充（AI 填充整个表单）**：
+   - **如果表单未识别**：
+     - 扫描表单（识别动画）→ 调用 AI → 流式填充所有字段
+   - **如果表单已识别**（用户已点击过"识别表单"）：
+     - **直接跳过识别步骤** → 调用 AI → 流式填充所有字段
+   - 支持用户自定义要求
+   - 使用知识库提供上下文
+   - 每个字段独立打字效果
+   - **状态管理**：全局变量 `isFormScanned` 标记表单是否已识别
+
+2. **快速填充**：
+   - 使用 `content → field_name_aliases` 映射关系
+   - **跳过已有内容的字段**（`if (input.value && input.value.trim() !== '')`）
+   - 直接填入预设值，无 AI 调用
+   - 示例映射：
+     ```javascript
+     const mappingData = {
+         0: '张明',      // 姓名
+         4: 'zhangming@example.com'  // 邮箱
+     };
+     ```
+
+3. **单字段 AI 填充（一键填充）**：
+   - **清空字段现有内容后再填充**（`input.value = ''`）
+   - 针对单个字段调用 AI
+   - 支持打字效果
+
+**识别状态管理**：
+```javascript
+// 全局状态
+let isFormScanned = false;
+
+// 识别表单时设置
+function scanForm() {
+    // ... 识别动画
+    isFormScanned = true;
+}
+
+// 智能填充时判断
+function fillForm() {
+    if (isFormScanned) {
+        startFilling(); // 直接填充
+    } else {
+        // 先识别，再填充
+        // ... 识别动画
+        isFormScanned = true;
+        startFilling();
+    }
+}
+```
 
 **历史记录（手风琴面板）：**
 - 显示最近的填充要求
@@ -256,9 +589,18 @@ graph TB
 - 功能说明：配置内容值与表单字段类型的映射关系，用于快速填充
 - 映射列表
   - 每项显示：
+    - **启用/禁用开关**（Toggle Switch）
     - 内容值（如：张明、zhangming@example.com、13800138000）
     - 字段类型（如：姓名 / Name、邮箱 / Email、手机号 / Phone）
     - 操作：编辑、删除
+  - **禁用状态样式**：
+    - 半透明（opacity: 0.5）
+    - 文字删除线
+    - 开关为灰色
+  - **启用/禁用规则**：
+    - 禁用的映射不会在快速填充时使用
+    - 禁用≠删除，可以随时重新启用
+    - 适用场景：临时不需要某个映射，但不想删除
 - 新增映射按钮
 - 编辑/新增弹出模态框：
   - 内容值输入框（你要填充的实际内容）
@@ -314,67 +656,228 @@ graph TB
 
 ### 3.4 输入框交互（Input Interactions）
 
-#### 3.4.1 交互场景
+#### 3.4.1 按钮设计原则
+**纯图标 + Tooltip：**
+- 所有按钮采用**纯图标设计**（无文字），适配短输入框
+- 鼠标悬停显示 **Tooltip 提示**，说明按钮功能
+- 按钮动态计算位置，根据输入框高度自动紧贴顶部
+- 样式：`padding: 6px 8px`，圆角 `6px`，带阴影
 
-**场景 1: 空输入框**
-- 点击后显示操作按钮（在输入框上方，紧贴）
+#### 3.4.2 交互场景
+
+**场景 1: 空输入框（无映射）**
+- 点击后显示操作按钮（在输入框上方）
 - 操作按钮：
-  - 填充按钮（下拉）：
-    - 快速填充（基于预设映射）
-    - 智能填充（AI 生成，可输入要求）
-    - 填充整个表单
-  - 翻译按钮（下拉）：支持多语言
-- 按钮样式：
-  - 小尺寸（padding: 6px 10px, font-size: 12px）
-  - 圆角：6px
-  - 阴影：`0 2px 8px rgba(0,0,0,0.08)`
+  - 🪄 **一键填充**（蓝色主按钮，Tooltip: "AI 填充"）
+  - 🌐 **翻译**（下拉菜单，Tooltip: "翻译"，13种语言）
+  - 🔄 **重填整个表单**（Tooltip: "重填整个表单"）
 
-**场景 2: 有缓存值**
+**场景 2: 空输入框（有映射缓存）**
 - 输入框样式：
-  - 背景色：`rgba(31, 135, 252, 0.08)`
   - 边框色：`#1f87fc`
-  - Placeholder 颜色：`#1f87fc`（非斜体，无灯泡图标）
-- 点击后显示：
-  - 缓存确认按钮（绿色，带 Tooltip）
-  - 翻译按钮
-  - 填充按钮
-- 填充完成后：
-  - 绿色边框 + 浅绿色背景
-  - 缩放动画（1.0 → 1.02 → 1.0）
-  - Toast 提示："已填充缓存值"
-  - 0.5秒后恢复蓝色状态
+  - Placeholder 显示缓存值（如"张明"）
+  - Placeholder 颜色：`#1f87fc`
+- 点击后显示所有按钮：
+  - ✓ **确认按钮**（绿色，Tooltip: "填充：张明"）
+  - 🪄 **一键填充**
+  - 🌐 **翻译**
+  - 🔄 **重填整个表单**
+- 填充完成后：绿色边框 + 浅绿色背景 + 缩放动画
 
 **场景 3: 已有内容**
-- 点击填充按钮弹出页面内确认对话框
-- 对话框内容：
-  - 标题："当前输入框已有内容"
-  - 说明文字
-  - 确定（修改）/ 取消（替换）按钮
-- 不使用 alert/msgbox
+- 点击后显示操作按钮：
+  - 🪄 **一键填充**：清空后 AI 重新生成
+  - 🌐 **翻译**：翻译现有内容
+  - 🔄 **重填整个表单**
 
 **场景 4: 多行文本框**
-- 支持重新生成功能
-- 重新生成栏（可展开）：
-  - 输入框："输入你的要求，例如：更专业、更简洁..."
-  - 取消 / 重新生成按钮
+- 支持所有标准操作（填充、翻译、重填）
+- 按钮位置根据 textarea 高度动态调整
 
-**场景 5: 输入框动效**
-- 提供演示按钮触发各种动效
-- scanning / filling / filled / error
+#### 3.4.3 Tooltip 样式规范
+```css
+.action-btn::after,
+.cache-confirm-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+    z-index: 1000;
+}
 
-#### 3.4.2 操作按钮定位
-- 位置：`bottom: 100%; right: 0; margin-bottom: 4px;`
-- 显示控制：通过 `.input-wrapper.active` 类
+.action-btn:hover::after,
+.cache-confirm-btn:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+@media (prefers-color-scheme: dark) {
+    .action-btn::after,
+    .cache-confirm-btn::after {
+        background: rgba(255, 255, 255, 0.9);
+        color: #202124;
+    }
+}
+```
+
+#### 3.4.4 翻译语言列表（按热门度排序）
+1. 🇬🇧 English
+2. 🇪🇸 Español
+3. 🇫🇷 Français
+4. 🇩🇪 Deutsch
+5. 🇵🇹 Português
+6. 🇷🇺 Русский
+7. 🇯🇵 日本語
+8. 🇰🇷 한국어
+9. 🇮🇩 Bahasa Indonesia
+10. 🇹🇭 ภาษาไทย
+11. 🇸🇦 العربية
+12. 🇨🇳 简体中文（排在最后）
+13. 🇭🇰 繁體中文（排在最后）
+
+#### 3.4.5 操作按钮显示规则
+
+**按钮类型**：
+1. **确认按钮（绿色✓）**：仅在有缓存值时显示
+2. **AI 填充按钮（蓝色✨）**：所有可编辑字段显示
+3. **翻译按钮（地球🌐）**：根据字段类型判断
+4. **重填表单按钮（刷新🔄）**：所有可编辑字段显示
+
+**翻译按钮显示逻辑**：
+
+| 字段类型 | 是否显示翻译 | 原因 |
+|---------|-------------|------|
+| `text` | ✅ 显示 | 文本内容可翻译 |
+| `email` | ✅ 显示 | 可能包含公司名等文本 |
+| `textarea` | ✅ 显示 | 长文本内容可翻译 |
+| `select` | ❌ 不显示 | 下拉选项，无需翻译 |
+| `number` | ❌ 不显示 | 纯数字，无需翻译 |
+| `tel` | ❌ 不显示 | 电话号码，无需翻译 |
+| `password` | ❌ 不显示 | 密码字段，不显示任何按钮 |
+| `disabled/readonly` | ❌ 不显示 | 禁用字段，不显示任何按钮 |
+
+**JavaScript 判断逻辑**：
+```javascript
+// 判断是否显示翻译按钮
+function shouldShowTranslate(input) {
+    const type = input.type;
+    const isDisabled = input.disabled || input.readOnly;
+    const isSelect = input.tagName === 'SELECT';
+    
+    // 密码或禁用字段：不显示任何按钮
+    if (type === 'password' || isDisabled) return false;
+    
+    // select、number、tel：不显示翻译
+    if (isSelect || type === 'number' || type === 'tel') return false;
+    
+    // 值为空或纯数字：不显示翻译
+    const value = input.value.trim();
+    if (!value || /^\d+$/.test(value)) return false;
+    
+    return true;
+}
+```
+
+#### 3.4.6 操作按钮定位
+- 位置：`bottom: calc(100% + 2px); right: 0;`
+- 动态调整：根据输入框高度和边框宽度计算
+- 显示控制：通过 `.mock-form-group.active` 类
 - 激活条件：
   - 输入框 focus
-  - 输入框 hover
-  - 确认对话框打开时
+  - 表单组 hover
+  
+```javascript
+// 动态计算按钮位置
+const inputHeight = input.offsetHeight;
+const borderWidth = parseFloat(getComputedStyle(input).borderWidth) || 1.5;
+actionBar.style.bottom = `calc(${inputHeight}px + ${borderWidth}px)`;
+```
 
-#### 3.4.3 Toast 系统
+#### 3.4.6 Toast 系统
 - 位置：顶部居中
 - 动画：滑入滑出
 - 显示时长：2秒
 - 支持类型：success / info / error
+- "学习中" 和 "快速填充" 不显示 "成功" 后缀
+
+---
+
+### 3.5 表单字段设计
+
+#### 3.5.1 字段类型清单
+
+| 序号 | 字段名 | 类型 | 特性 | 布局 |
+|------|--------|------|------|------|
+| 0 | 头像 | 上传占位 | 80x80，虚线框 | 单独一行 |
+| 1 | 姓名 * | 文本框 | 有缓存 | 与性别同行 |
+| 2 | 性别 * | 下拉框 | 男/女/其他 | 与姓名同行 |
+| 3 | 学历 * | 下拉框 | 高中~博士 | 与年龄同行 |
+| 4 | 年龄 * | 数字框（短） | 短输入框 | 与学历同行 |
+| 5 | 邮箱 * | Email | 有缓存 | 与手机同行 |
+| 6 | 手机号 * | Tel | 标准宽度 | 与邮箱同行 |
+| 7 | 地址 | 文本框 | 标准宽度 | 单独一行 |
+| 8 | 公司名称 | 文本框 | 标准宽度 | 单独一行 |
+| 9 | 个人简介 * | 多行文本 | min-height: 120px | 单独一行 |
+| 10 | 用户ID | 文本框 | 禁用，只读 | 单独一行 |
+| 11 | 完成度 | 进度条 | 非交互 | 单独一行 |
+
+#### 3.5.2 双列布局规则
+```css
+.mock-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 768px) {
+    .mock-form-row {
+        grid-template-columns: 1fr;
+    }
+}
+```
+
+**布局安排：**
+- **行1（头像）**：单独占一行
+- **行2（姓名+性别）**：`grid-template-columns: 1fr 1fr`
+- **行3（学历+年龄）**：`grid-template-columns: 1fr 1fr`
+- **行4（邮箱+手机）**：`grid-template-columns: 1fr 1fr`
+- **行5（地址）**：单独占一行
+- **行6（公司）**：单独占一行
+- **行7（简介）**：单独占一行
+- **行8（用户ID）**：单独占一行
+- **行9（进度条）**：单独占一行
+
+#### 3.5.3 头像上传样式
+```css
+.mock-avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg-secondary);
+}
+
+.mock-avatar-placeholder:hover {
+    border-color: var(--primary);
+    background: var(--bg-hover);
+}
+```
 
 ---
 
@@ -419,7 +922,7 @@ sequenceDiagram
     I->>I: 填充值
     I->>I: 添加 filled 样式（绿色边框+背景）
     I->>I: 缩放动画（400ms）
-    T->>U: 显示 Toast："已填充缓存值"
+    T->>U: 显示 Toast："已填充"
     I->>I: 0.5秒后恢复蓝色缓存状态
 ```
 
@@ -826,7 +1329,61 @@ function showToast(message, type = 'success') {
 
 ---
 
-## 六、核心算法与逻辑
+## 六、多语言支持
+
+### 6.1 Demo 数据多语言化
+
+为了更好地测试翻译功能，所有 Demo 数据支持 13 种语言：
+
+```javascript
+const demoData = {
+    '姓名': {
+        'zh-CN': '张明',
+        'zh-HK': '張明',
+        'en': 'Zhang Ming',
+        'ja': '張明',
+        'ko': '장명',
+        'ru': 'Чжань Минь',
+        'es': 'Zhang Ming',
+        'pt': 'Zhang Ming',
+        'fr': 'Zhang Ming',
+        'de': 'Zhang Ming',
+        'id': 'Zhang Ming',
+        'th': 'จาง หมิง',
+        'ar': 'تشانغ مينغ'
+    },
+    '地址': {
+        'zh-CN': '广东省横琴粤澳深度合作区',
+        'zh-HK': '廣東省珠海市橫琴新區',
+        'en': 'Hengqin New Area, Zhuhai, Guangdong',
+        'ja': '広東省珠海市横琴新区',
+        // ... 其他语言
+    }
+    // ... 其他字段
+};
+```
+
+### 6.2 支持的语言列表
+
+按照热门程度排序（与翻译下拉菜单一致）：
+
+1. 🇬🇧 English
+2. 🇪🇸 Español
+3. 🇫🇷 Français
+4. 🇩🇪 Deutsch
+5. 🇵🇹 Português
+6. 🇷🇺 Русский
+7. 🇯🇵 日本語
+8. 🇰🇷 한국어
+9. 🇮🇩 Bahasa Indonesia
+10. 🇹🇭 ภาษาไทย
+11. 🇸🇦 العربية
+12. 🇨🇳 简体中文
+13. 🇭🇰 繁體中文
+
+---
+
+## 七、核心算法与逻辑
 
 ### 6.1 快速填充算法（基于字段映射）
 
@@ -961,6 +1518,35 @@ function findBestMatch(fieldName, fieldType, mappings) {
 - 表单字段：`<input placeholder="Company Name">`
 - 映射配置：`金山办公` → `["公司", "Company", "单位"]`
 - 匹配结果：模糊匹配"Company" → 填充"金山办公"
+
+#### 6.1.4 跳过已有内容的逻辑
+
+**核心原则：** 快速填充不覆盖用户已填写的内容
+
+```javascript
+// 检查字段是否已有内容
+if (field.value && field.value.trim() !== '') {
+    skippedCount++;
+    continue; // 跳过该字段
+}
+```
+
+**填充结果提示：**
+- 全部已填写：`"所有字段已填写，无需填充"`
+- 部分跳过：`"已填充 X 个字段，跳过 Y 个已有内容"`
+- 全部填充：`"填充完成"`
+
+**示例场景：**
+```
+表单字段：6个
+已填写：2个（姓名、邮箱）
+映射匹配：4个（姓名、邮箱、手机号、公司）
+
+执行结果：
+- 跳过：姓名、邮箱（已有内容）
+- 填充：手机号、公司
+- 提示："已填充 2 个字段，跳过 2 个已有内容"
+```
 
 ### 6.2 智能填充决策算法（基于知识库）
 
@@ -1179,6 +1765,28 @@ playground/
 └── PRD.md                              # 本文档
 ```
 
+**Playground 页面列表**：
+
+1. **index.html** - 导航页
+   - 所有 Playground 页面的入口
+
+2. **v2-sidebar-redesign.html** - 侧边栏 + 注册表单场景
+   - 完整的侧边栏交互
+   - 模拟注册表单填充
+
+3. **v2-bbs-reply.html** - BBS 回复场景 ⭐ 新增
+   - 模拟论坛帖子页面
+   - 主楼 + 多个回复楼层
+   - 支持划词添加到引用
+   - 回复框支持 AI 填充
+   - 引用区域完整交互
+
+4. **v2-settings-redesign.html** - 设置页面
+   - 模型配置、知识库管理、字段映射等
+
+5. **v2-input-interactions-redesign.html** - 输入框交互动效
+   - 所有输入框状态演示
+
 ---
 
 ## 十、更新日志
@@ -1198,6 +1806,28 @@ playground/
   - 阈值说明（500字/30K）
   - 完整伪代码实现
 - 新增智能填充决策测试用例
+- **集成 Lucide Icons**
+  - 下载本地文件（lucide.min.js）
+  - 替换所有 46 个 SVG 图标
+  - 优化图标大小（主按钮 16px，GitHub 14px）
+  - 更新图标：`scan-text`、`list-restart`、`languages`
+- **优化识别表单逻辑**
+  - 移除视觉动画，改用 Toast 提示
+  - 添加 `isFormScanned` 状态管理
+  - 智能填充时跳过重复识别（节省 ~3秒）
+- **新增引用区域功能**
+  - 填充要求面板中添加引用区域
+  - 支持知识库挂载显示
+  - 支持页面划词添加引用
+  - 引用卡片可删除
+- **新增应用场景章节**
+  - 场景一：注册表单填充
+  - 场景二：BBS 论坛回复（⭐ 重点）
+  - 规划更多场景
+- **规划 BBS 回复 Playground**
+  - v2-bbs-reply.html（待实现）
+  - 模拟论坛帖子页面
+  - 完整划词引用交互
 
 ---
 

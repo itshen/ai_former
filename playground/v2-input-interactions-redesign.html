@@ -1064,7 +1064,7 @@
             });
         });
 
-        // 填充缓存值
+        // 填充
         function fillCachedValue() {
             const input = document.getElementById('cache-input');
             const wrapper = input.closest('.input-wrapper');
@@ -1077,7 +1077,7 @@
                 input.classList.remove('filling');
                 input.classList.add('filled');
                 
-                showToast('已填充缓存值');
+                showToast('已填充');
                 
                 // 0.5秒后移除 filled 状态，但保留 has-cache
                 setTimeout(() => {

@@ -400,6 +400,62 @@
             align-items: center;
             justify-content: space-between;
             gap: 16px;
+            transition: all 0.2s;
+        }
+
+        .mapping-item.disabled {
+            opacity: 0.5;
+        }
+
+        .mapping-item.disabled .mapping-value,
+        .mapping-item.disabled .mapping-name {
+            text-decoration: line-through;
+        }
+
+        /* 开关按钮 */
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(20px);
         }
 
         .mapping-info {
@@ -1190,6 +1246,10 @@
 
                 <div class="mapping-list">
                     <div class="mapping-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="toggleMapping(this)">
+                            <span class="toggle-slider"></span>
+                        </label>
                         <div class="mapping-info">
                             <div class="mapping-field">
                                 <span class="label">内容值</span>
@@ -1220,6 +1280,10 @@
                     </div>
 
                     <div class="mapping-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="toggleMapping(this)">
+                            <span class="toggle-slider"></span>
+                        </label>
                         <div class="mapping-info">
                             <div class="mapping-field">
                                 <span class="label">内容值</span>
@@ -1249,7 +1313,11 @@
                         </div>
                     </div>
 
-                    <div class="mapping-item">
+                    <div class="mapping-item disabled">
+                        <label class="toggle-switch">
+                            <input type="checkbox" onchange="toggleMapping(this)">
+                            <span class="toggle-slider"></span>
+                        </label>
                         <div class="mapping-info">
                             <div class="mapping-field">
                                 <span class="label">内容值</span>
@@ -1280,6 +1348,10 @@
                     </div>
 
                     <div class="mapping-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked onchange="toggleMapping(this)">
+                            <span class="toggle-slider"></span>
+                        </label>
                         <div class="mapping-info">
                             <div class="mapping-field">
                                 <span class="label">内容值</span>
@@ -1693,6 +1765,15 @@
             // 模拟保存
             alert('映射已保存：' + valueInput.value + ' → ' + fieldInput.value);
             closeMappingModal();
+        }
+
+        function toggleMapping(checkbox) {
+            const item = checkbox.closest('.mapping-item');
+            if (checkbox.checked) {
+                item.classList.remove('disabled');
+            } else {
+                item.classList.add('disabled');
+            }
         }
 
         // 支持 hash 跳转
